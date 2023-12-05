@@ -14,7 +14,12 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   output$user <- renderText({
-    paste0("Hello, ", r.sso::token()$get_given_name())
+    given_name <- r.sso::token()$get_given_name()
+    family_name <- r.sso::token()$get_family_name()
+    expires_at <- r.sso::token()$expires_at()
+    glue::glue(
+      "Hello {given_name} {family_name}! Your authenticated session will expire at {expires_at}."
+    )
   })
 }
 
