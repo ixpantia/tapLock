@@ -11,6 +11,7 @@ fetch_jwks <- function(url) {
 new_openid_config <- function(provider, ...) {
   switch(provider,
     entra_id = new_entra_id_config(...),
+    google = new_google_config(...)
   )
 }
 

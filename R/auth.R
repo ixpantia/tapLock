@@ -4,6 +4,20 @@ access_token <- function(config, token) {
 }
 
 #' @export
+access_token.google_config <- function(config, token) {
+  token_data <- decode_token(config, token)
+  structure(
+    list(
+      access_token = token,
+      exp = lubridate::as_datetime(token_data$exp),
+      iat = lubridate::as_datetime(token_data$iat),
+      token_data = token_data
+    ),
+    class = c("google_token", "access_token")
+  )
+}
+
+#' @export
 access_token.entra_id_config <- function(config, token) {
   token_data <- decode_token(config, token)
   structure(
@@ -11,12 +25,7 @@ access_token.entra_id_config <- function(config, token) {
       access_token = token,
       exp = lubridate::as_datetime(token_data$exp),
       iat = lubridate::as_datetime(token_data$iat),
-      nbf = lubridate::as_datetime(token_data$nbf),
-      name = token_data$name,
-      given_name = token_data$given_name,
-      family_name = token_data$family_name,
-      unique_name = token_data$unique_name,
-      aud = token_data$aud
+      token_data = token_data
     ),
     class = c("entra_id_token", "access_token")
   )
@@ -34,7 +43,6 @@ print.access_token <- function(x, ...) {
   )
   cat(
     "Access Token:",
-    "(Unique Name)", get_unique_name(x),
     "(Expires At)", expiration_date,
     "\n",
     sep = " "
@@ -62,11 +70,6 @@ get_access_token <- function(token) {
 }
 
 #' @export
-get_audience <- function(token) {
-  token$aud
-}
-
-#' @export
 expires_in <- function(token) {
   token$exp - Sys.time()
 }
@@ -77,21 +80,6 @@ expires_at <- function(token) {
 }
 
 #' @export
-get_name <- function(token) {
-  token$name
-}
-
-#' @export
-get_given_name <- function(token) {
-  token$given_name
-}
-
-#' @export
-get_family_name <- function(token) {
-  token$family_name
-}
-
-#' @export
-get_unique_name <- function(token) {
-  token$unique_name
+get_token_field <- function(token, field) {
+  token$token_data[[field]]
 }

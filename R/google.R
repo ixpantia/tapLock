@@ -1,27 +1,23 @@
-ENTRA_ID_BASE_URL <- "https://login.microsoftonline.com"
-
-build_entra_id_login_url <- function(auth_url, client_id, redirect_uri) {
+build_google_login_url <- function(auth_url, client_id, redirect_uri) {
   url <- httr2::url_parse(auth_url)
   url$query <- list(
     client_id = client_id,
     redirect_uri = redirect_uri,
-    response_mode = "form_post",
     response_type = "code",
-    prompt = "login",
-    scope = glue::glue("{client_id}/.default")
+    prompt = "select_account",
+    scope = "openid email profile"
   )
   httr2::url_build(url)
 }
 
-new_entra_id_config <- function(tenant_id, client_id, client_secret, app_url) {
-  auth_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/oauth2/v2.0/authorize")
-  token_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/oauth2/v2.0/token")
-  jwks_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/discovery/v2.0/keys")
+new_google_config <- function(client_id, client_secret, app_url) {
+  auth_url <- "https://accounts.google.com/o/oauth2/v2/auth"
+  token_url <- "https://oauth2.googleapis.com/token"
+  jwks_url <- "https://www.googleapis.com/oauth2/v2/certs"
   redirect_uri <- build_redirect_uri(app_url)
-  login_url <- build_entra_id_login_url(auth_url, client_id, redirect_uri)
+  login_url <- build_google_login_url(auth_url, client_id, redirect_uri)
   structure(
     list(
-      tenant_id = tenant_id,
       client_id = client_id,
       client_secret = client_secret,
       redirect_uri = redirect_uri,
@@ -31,22 +27,22 @@ new_entra_id_config <- function(tenant_id, client_id, client_secret, app_url) {
       login_url = login_url,
       jwks = fetch_jwks(jwks_url)
     ),
-    class = c("entra_id_config", "openid_config")
+    class = c("google_config", "openid_config")
   )
 }
 
 #' @export
-get_login_url.entra_id_config <- function(config) {
+get_login_url.google_config <- function(config) {
   config$login_url
 }
 
 #' @export
-get_logout_url.entra_id_config <- function(config) {
+get_logout_url.google_config <- function(config) {
   stop("Logout not implemented for Entra ID")
 }
 
 #' @export
-request_token.entra_id_config <- function(config, authorization_code) {
+request_token.google_config <- function(config, authorization_code) {
   res <- httr2::request(config$token_url) |>
     httr2::req_method("POST") |>
     httr2::req_body_form(
@@ -62,11 +58,11 @@ request_token.entra_id_config <- function(config, authorization_code) {
     stop(httr2::resp_body_string(res))
   }
   resp_body <- httr2::resp_body_json(res)
-  access_token(config, resp_body$access_token)
+  access_token(config, resp_body$id_token)
 }
 
 #' @export
-decode_token.entra_id_config <- function(config, token) {
+decode_token.google_config <- function(config, token) {
   decoded <- config$jwks |>
     purrr::map(function(jwk) {
       tryCatch(
@@ -85,22 +81,22 @@ decode_token.entra_id_config <- function(config, token) {
 }
 
 #' @export
-get_client_id.entra_id_config <- function(config) {
+get_client_id.google_config <- function(config) {
   config$client_id
 }
 
 #' @export
-shiny_app.entra_id_config <- function(config, app) {
+shiny_app.google_config <- function(config, app) {
   app_handler <- app$httpHandler
   login_handler <- function(req) {
 
     # If the user sends a POST request to /login, we'll get a code
     # and exchange it for an access token. We'll then redirect the
     # user to the root path, setting a cookie with the access token.
-    if (req$REQUEST_METHOD == "POST" && req$PATH_INFO == "/login") {
-      form <- shiny::parseQueryString(req[["rook.input"]]$read_lines())
+    if (req$PATH_INFO == "/login") {
+      query <- shiny::parseQueryString(req$QUERY_STRING)
       token <- promises::future_promise({
-        request_token(config, form[["code"]])
+        request_token(config, query[["code"]])
       })
       return(
         promises::then(
