@@ -32,4 +32,5 @@ server <- function(input, output, session) {
   })
 }
 
-sso_shiny_app(auth_config, ui, server)```
+sso_shiny_app(auth_config, ui, server)
+```
