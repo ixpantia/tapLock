@@ -6,9 +6,9 @@ rsso_server <- function(config, server_func) {
       stop("No access token")
     }
 
-    token <- access_token$new(remove_bearer(cookies$access_token), config)
+    token <- access_token(config, remove_bearer(cookies$access_token))
 
-    if (token$is_expired()) {
+    if (is_expired(token)) {
       stop("Token expired")
     }
 
@@ -18,14 +18,17 @@ rsso_server <- function(config, server_func) {
   }
 }
 
-rsso_shiny_app <- function(config, app) {
+shiny_app <- function(config, app) {
   app_handler <- app$httpHandler
-
   login_handler <- function(req) {
+
+    # If the user sends a POST request to /login, we'll get a code
+    # and exchange it for an access token. We'll then redirect the
+    # user to the root path, setting a cookie with the access token.
     if (req$REQUEST_METHOD == "POST" && req$PATH_INFO == "/login") {
       form <- shiny::parseQueryString(req[["rook.input"]]$read_lines())
       token <- promises::future_promise({
-        config$request_token(form[["code"]])
+        request_token(config, form[["code"]])
       })
       return(
         promises::then(
@@ -35,7 +38,7 @@ rsso_shiny_app <- function(config, app) {
               status = 302,
               headers = list(
                 Location = "/",
-                "Set-Cookie" = build_cookie("access_token", token$get_bearer())
+                "Set-Cookie" = build_cookie("access_token", get_bearer(token))
               )
             )
           },
@@ -52,11 +55,15 @@ rsso_shiny_app <- function(config, app) {
       )
     }
 
+    # Get eh HTTP cookies from the request
     cookies <- parse_cookies(req$HTTP_COOKIE)
 
+    # If the user requests the root path, we'll check if they have
+    # an access token. If they don't, we'll redirect them to the
+    # login page.
     if (req$PATH_INFO == "/") {
       token <- tryCatch(
-        expr = access_token$new(remove_bearer(cookies$access_token), config),
+        expr = access_token(config, remove_bearer(cookies$access_token)),
         error = function(e) {
           return(NULL)
         }
@@ -66,15 +73,18 @@ rsso_shiny_app <- function(config, app) {
           shiny::httpResponse(
             status = 302,
             headers = list(
-              Location = config$get_login_url()
+              Location = get_login_url(config)
             )
           )
         )
       }
     }
 
+    # If the user requests any other path, we'll check if they have
+    # an access token. If they don't, we'll return a 403 Forbidden
+    # response.
     token <- tryCatch(
-      expr = access_token$new(remove_bearer(cookies$access_token), config),
+      expr = access_token(config, remove_bearer(cookies$access_token)),
       error = function(e) {
         return(NULL)
       }
@@ -90,6 +100,9 @@ rsso_shiny_app <- function(config, app) {
       )
     }
 
+    # If we have reached this point, the user has a valid access
+    # token and therefore we can return NULL, which will cause the
+    # app handler to be called.
     return(NULL)
   }
 
@@ -113,4 +126,10 @@ rsso_shiny_app <- function(config, app) {
 #' @export
 token <- function(session = shiny::getDefaultReactiveDomain()) {
   session$userData$token
+}
+
+#' @export
+sso_shiny_app <- function(config, ui, server) {
+  app <- shiny::shinyApp(ui = ui, server = rsso_server(config, server))
+  shiny_app(config, app)
 }
