@@ -7,7 +7,8 @@ library(shiny)
 library(r.sso)
 
 auth_config <- new_openid_config(
-  provider = "google",
+  provider = "entra_id",
+  tenant_id = Sys.getenv("TENANT_ID"),
   client_id = Sys.getenv("CLIENT_ID"),
   client_secret = Sys.getenv("CLIENT_SECRET"),
   app_url = Sys.getenv("APP_URL")
