@@ -1,10 +1,10 @@
-# R.SSO
+# tapLock
 
 ## Example Shiny App with Entra ID Authentication
 
 ```R
 library(shiny)
-library(r.sso)
+library(tapLock)
 
 auth_config <- new_openid_config(
   provider = "entra_id",
@@ -15,14 +15,7 @@ auth_config <- new_openid_config(
 )
 
 ui <- fluidPage(
-  tags$h1("r.sso example"),
-  tags$a(
-    tags$button(
-      "Logout",
-      class = "btn btn-primary"
-    ),
-    href = "/logout"
-  ),
+  tags$h1("tapLock example"),
   textOutput("user")
 )
 
@@ -33,20 +26,20 @@ server <- function(input, output, session) {
     family_name <- get_token_field(token(), "family_name")
     expires_at <- expires_at(token())
     glue::glue(
-      "Hello {given_name} {family_name}! Your authenticated session will expire at {expires_at}."
+      "Hello {given_name} {family_name}!",
+      "Your authenticated session will expire at {expires_at}.",
+      .sep = " "
     )
   })
 
 }
-
-sso_shiny_app(auth_config, ui, server)
 ```
 
 ## Example Shiny App with Google Authentication
 
 ```R
 library(shiny)
-library(r.sso)
+library(tapLock)
 
 auth_config <- new_openid_config(
   provider = "google",
@@ -56,14 +49,7 @@ auth_config <- new_openid_config(
 )
 
 ui <- fluidPage(
-  tags$h1("r.sso example"),
-  tags$a(
-    tags$button(
-      "Logout",
-      class = "btn btn-primary"
-    ),
-    href = "/logout"
-  ),
+  tags$h1("tapLock example"),
   textOutput("user")
 )
 
@@ -74,12 +60,12 @@ server <- function(input, output, session) {
     family_name <- get_token_field(token(), "family_name")
     expires_at <- expires_at(token())
     glue::glue(
-      "Hello {given_name} {family_name}! Your authenticated session will expire at {expires_at}."
+      "Hello {given_name} {family_name}!",
+      "Your authenticated session will expire at {expires_at}.",
+      .sep = " "
     )
   })
 
 }
-
-sso_shiny_app(auth_config, ui, server)
 ```
 

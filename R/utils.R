@@ -1,3 +1,10 @@
+#' @title Remove bearer from token
+#' @description Removes the "Bearer " prefix from a token
+#'
+#' @param token A string containing the token
+#'
+#' @return A string containing the token without the "Bearer " prefix
+#' @keywords internal
 remove_bearer <- function(token) {
   if (is.null(token)) {
     return(NULL)
@@ -6,6 +13,13 @@ remove_bearer <- function(token) {
   return(token)
 }
 
+#' @title Parse cookies
+#' @description Parses cookies from a string
+#'
+#' @param x A string containing the cookies
+#'
+#' @return A list containing the cookies
+#' @keywords internal
 parse_cookies <- function(x) {
   if (is.null(x)) {
     return(list())
@@ -20,10 +34,25 @@ parse_cookies <- function(x) {
   return(cookie_pairs)
 }
 
+#' @title Build a cookie
+#' @description Builds an HttpOnly cookie from a key and value
+#'
+#' @param key A string containing the cookie key
+#' @param value A string containing the cookie value
+#'
+#' @return A string containing the cookie
+#' @keywords internal
 build_cookie <- function(key, value) {
   glue::glue("{key}={value}; path=/; SameSite=Lax; HttpOnly")
 }
 
+#' @title Build a redirect URI
+#' @description Builds a redirect URI from an app URL
+#'
+#' @param app_url A string containing the app URL
+#'
+#' @return A string containing the redirect URI
+#' @keywords internal
 build_redirect_uri <- function(app_url) {
   url <- httr2::url_parse(app_url)
   path <- url$path

@@ -1,3 +1,4 @@
+#' @keywords internal
 build_google_login_url <- function(auth_url, client_id, redirect_uri) {
   url <- httr2::url_parse(auth_url)
   url$query <- list(
@@ -10,6 +11,7 @@ build_google_login_url <- function(auth_url, client_id, redirect_uri) {
   httr2::url_build(url)
 }
 
+#' @keywords internal
 new_google_config <- function(client_id, client_secret, app_url) {
   auth_url <- "https://accounts.google.com/o/oauth2/v2/auth"
   token_url <- "https://oauth2.googleapis.com/token"
@@ -31,17 +33,17 @@ new_google_config <- function(client_id, client_secret, app_url) {
   )
 }
 
-#' @export
+#' @keywords internal
 get_login_url.google_config <- function(config) {
   config$login_url
 }
 
-#' @export
+#' @keywords internal
 get_logout_url.google_config <- function(config) {
-  stop("Logout not implemented for Entra ID")
+  stop("Not implemented")
 }
 
-#' @export
+#' @keywords internal
 request_token.google_config <- function(config, authorization_code) {
   res <- httr2::request(config$token_url) |>
     httr2::req_method("POST") |>
@@ -61,7 +63,7 @@ request_token.google_config <- function(config, authorization_code) {
   access_token(config, resp_body$id_token)
 }
 
-#' @export
+#' @keywords internal
 decode_token.google_config <- function(config, token) {
   decoded <- config$jwks |>
     purrr::map(function(jwk) {
@@ -80,12 +82,12 @@ decode_token.google_config <- function(config, token) {
   return(decoded)
 }
 
-#' @export
+#' @keywords internal
 get_client_id.google_config <- function(config) {
   config$client_id
 }
 
-#' @export
+#' @keywords internal
 shiny_app.google_config <- function(config, app) {
   app_handler <- app$httpHandler
   login_handler <- function(req) {
