@@ -1,12 +1,17 @@
-Package: r.sso
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Package: tapLock
+Title: Seamless SSO for R applications
+Version: 0.1.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    c(person(given = "ixpantia, SRL",
+             role = "cph",
+             email = "hola@ixpantia.com"),
+      person("Andres", "Quintero", , "andres@ixpantia.com", role = c("aut", "cre")))
+Description: The ultimate R package for swift and seamless Single Sign-On (SSO)
+    integration. Designed for effortless compatibility with popular SSO providers
+    like Google and Microsoft, tapLock streamlines authentication, enhancing both
+    user experience and application security. Elevate your R-based projects with
+    tapLock for a simplified, unified, and secure authentication process.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
