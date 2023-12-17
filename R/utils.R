@@ -46,20 +46,33 @@ build_cookie <- function(key, value) {
   glue::glue("{key}={value}; path=/; SameSite=Lax; HttpOnly")
 }
 
+#' @title Add trailing slash to URL
+#' @description If the app URL does not end with a slash, this function
+#'   will add one.
+#'
+#' @param app_url A string containing a URL
+#'
+#' @return A string containing the URL with a trailing slash
+#' @keywords internal
+add_trailing_slash <- function(url) {
+  url <- httr2::url_parse(url)
+  path <- url$path
+  if (!stringr::str_ends(path, "/")) {
+    url$path <- glue::glue("{path}/")
+  }
+  httr2::url_build(url)
+}
+
 #' @title Build a redirect URI
 #' @description Builds a redirect URI from an app URL
 #'
-#' @param app_url A string containing the app URL
+#' @param app_url A string containing the app URL with a trailing slash
 #'
 #' @return A string containing the redirect URI
 #' @keywords internal
 build_redirect_uri <- function(app_url) {
   url <- httr2::url_parse(app_url)
   path <- url$path
-  if (stringr::str_ends(path, "/")) {
-    url$path <- glue::glue("{path}login")
-  } else {
-    url$path <- glue::glue("{path}/login")
-  }
+  url$path <- glue::glue("{path}login")
   httr2::url_build(url)
 }
