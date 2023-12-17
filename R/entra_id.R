@@ -16,6 +16,7 @@ build_entra_id_login_url <- function(auth_url, client_id, redirect_uri) {
 
 #' @keywords internal
 new_entra_id_config <- function(tenant_id, client_id, client_secret, app_url) {
+  app_url <- add_trailing_slash(app_url)
   auth_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/oauth2/v2.0/authorize")
   token_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/oauth2/v2.0/token")
   jwks_url <- glue::glue("{ENTRA_ID_BASE_URL}/{tenant_id}/discovery/v2.0/keys")
@@ -23,6 +24,7 @@ new_entra_id_config <- function(tenant_id, client_id, client_secret, app_url) {
   login_url <- build_entra_id_login_url(auth_url, client_id, redirect_uri)
   structure(
     list(
+      app_url = app_url,
       tenant_id = tenant_id,
       client_id = client_id,
       client_secret = client_secret,
@@ -111,7 +113,7 @@ shiny_app.entra_id_config <- function(config, app) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = "/",
+                Location = config$app_url,
                 "Set-Cookie" = build_cookie("access_token", get_bearer(token))
               )
             )
@@ -120,7 +122,7 @@ shiny_app.entra_id_config <- function(config, app) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = "/",
+                Location = config$app_url,
                 "Set-Cookie" = build_cookie("access_token", "")
               )
             )
@@ -134,7 +136,7 @@ shiny_app.entra_id_config <- function(config, app) {
         shiny::httpResponse(
           status = 302,
           headers = list(
-            Location = "/",
+            Location = config$app_url,
             "Set-Cookie" = build_cookie("access_token", "")
           )
         )

@@ -13,6 +13,7 @@ build_google_login_url <- function(auth_url, client_id, redirect_uri) {
 
 #' @keywords internal
 new_google_config <- function(client_id, client_secret, app_url) {
+  app_url <- add_trailing_slash(app_url)
   auth_url <- "https://accounts.google.com/o/oauth2/v2/auth"
   token_url <- "https://oauth2.googleapis.com/token"
   jwks_url <- "https://www.googleapis.com/oauth2/v2/certs"
@@ -20,6 +21,7 @@ new_google_config <- function(client_id, client_secret, app_url) {
   login_url <- build_google_login_url(auth_url, client_id, redirect_uri)
   structure(
     list(
+      app_url = app_url,
       client_id = client_id,
       client_secret = client_secret,
       redirect_uri = redirect_uri,
@@ -107,7 +109,7 @@ shiny_app.google_config <- function(config, app) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = "/",
+                Location = config$app_url,
                 "Set-Cookie" = build_cookie("access_token", get_bearer(token))
               )
             )
@@ -116,7 +118,7 @@ shiny_app.google_config <- function(config, app) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = "/",
+                Location = config$app_url,
                 "Set-Cookie" = build_cookie("access_token", "")
               )
             )
@@ -130,7 +132,7 @@ shiny_app.google_config <- function(config, app) {
         shiny::httpResponse(
           status = 302,
           headers = list(
-            Location = "/",
+            Location = config$app_url,
             "Set-Cookie" = build_cookie("access_token", "")
           )
         )
