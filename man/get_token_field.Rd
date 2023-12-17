@@ -8,6 +8,8 @@ get_token_field(token, field)
 }
 \arguments{
 \item{token}{An access_token object}
+
+\item{field}{The field to get from the token}
 }
 \value{
 A POSIXct object containing the date and time the token was issued
