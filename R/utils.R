@@ -28,7 +28,7 @@ parse_cookies <- function(x) {
   cookie_pairs <- purrr::map(cookie_pairs, ~ stringr::str_split(.x, "=", n = 2))[[1]]
   cookie_pairs <- purrr::map(cookie_pairs, function(.x) {
     .x[2] <- curl::curl_unescape(.x[2])
-    setNames(.x[2], .x[1])
+    stats::setNames(.x[2], .x[1])
   })
   cookie_pairs <- purrr::flatten(cookie_pairs)
   return(cookie_pairs)

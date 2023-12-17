@@ -133,6 +133,7 @@ expires_at <- function(token) {
 #' @description Gets the issued at time of an access token
 #'
 #' @param token An access_token object
+#' @param field The field to get from the token
 #'
 #' @return A POSIXct object containing the date and time the token was issued
 #' @export
