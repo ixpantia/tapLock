@@ -24,6 +24,7 @@ Imports:
     curl,
     glue,
     lubridate,
+    future,
     stats
 Suggests:
     shiny
