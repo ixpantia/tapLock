@@ -1,0 +1,108 @@
+---
+title: "(Español) Asegurando Shiny con Google Auth"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{(Español) Asegurando Shiny con Google Auth}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introducción
+
+Esta viñeta proporciona un tutorial paso a paso sobre cómo asegurar una aplicación Shiny utilizando la autenticación de Google a través del paquete R tapLock. tapLock simplifica la integración de OpenID Connect y OAuth 2.0 en aplicaciones Shiny, asegurando una robusta seguridad con un esfuerzo mínimo de codificación.
+
+## Prerrequisitos
+
+Antes de proceder, asegúrate de tener lo siguiente:
+- Un conocimiento básico de R y Shiny.
+- Una aplicación Shiny lista para ser desplegada.
+- Acceso a Google Developer Console para las credenciales OAuth.
+- (Opcional) Un servidor con HTTPS habilitado.
+
+## Paso 1: Instalar tapLock
+
+Instala tapLock desde GitHub usando el paquete `pak`:
+
+```r
+pak::pak("ixpantia/taplock")
+```
+
+## Paso 2: Crear Credenciales OAuth de Google
+
+1. Ve a [Google Developer Console](https://console.developers.google.com/).
+2. Crea un nuevo proyecto o selecciona uno existente.
+3. Navega a 'Credenciales' y crea credenciales 'OAuth client ID'.
+4. Establece los **`Authorized JavaScript origins`** en la URL de tu aplicación Shiny.
+5. Establece los **`Authorized redirect URIs`** en la URL de tu aplicación Shiny con
+   el sufijo `/login`.
+6. Anota el `client_id` y el `client_secret`.
+
+## Paso 3: Configurar Autenticación en R
+
+Carga tapLock y configura la autenticación:
+
+```r
+library(taplock)
+
+auth_config <- new_openid_config(
+  provider = "google",
+  client_id = Sys.getenv("GOOGLE_CLIENT_ID"),
+  client_secret = Sys.getenv("GOOGLE_CLIENT_SECRET"),
+  app_url = Sys.getenv("SHINY_APP_URL")
+)
+```
+
+Reemplaza `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, y `SHINY_APP_URL` con tus credenciales reales y la URL de tu aplicación en tus variables de entorno.
+
+## Paso 4: Modificar Aplicación Shiny
+
+Modifica tu aplicación Shiny para usar `sso_shiny_app`:
+
+```r
+library(shiny)
+library(tapLock)
+
+# Configuración de autenticación
+auth_config <- new_openid_config(
+  provider = "google",
+  client_id = Sys.getenv("GOOGLE_CLIENT_ID"),
+  client_secret = Sys.getenv("GOOGLE_CLIENT_SECRET"),
+  app_url = Sys.getenv("SHINY_APP_URL")
+)
+
+# UI
+ui <- fluidPage(
+  tags$h1("Bienvenido a la Aplicación Shiny Segura"),
+  textOutput("userInfo")
+)
+
+# Server
+server <- function(input, output, session) {
+  output$userInfo <- renderText({
+    user_email <- get_token_field(token(), "email")
+    glue::glue("Conectado como: {user_email}")
+  })
+}
+
+# Asegurar aplicación Shiny con tapLock
+sso_shiny_app(auth_config, ui, server)
+```
+
+## Paso 5: Desplegar la Aplicación
+
+Despliega tu aplicación Shiny como lo harías normalmente. El paquete tapLock maneja el proceso de autenticación.
+Recomendamos desplegar tu aplicación con una solución como Shiny Server
+(Open Source o Pro) o con [Faucet](https://github.com/andyquinterom/faucet).
+Soluciones como Posit Connect ya incluyen autenticación y no requieren
+tapLock.
+
+## Conclusión
+
+Siguiendo estos pasos, has asegurado con éxito tu aplicación Shiny con autenticación de Google utilizando tapLock. Esto asegura que solo los usuarios autenticados puedan acceder a tu aplicación, mejorando su seguridad y privacidad.
