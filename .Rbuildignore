@@ -2,3 +2,5 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^.github$
+^example$
