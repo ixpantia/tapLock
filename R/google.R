@@ -11,7 +11,15 @@ build_google_login_url <- function(auth_url, client_id, redirect_uri) {
   httr2::url_build(url)
 }
 
-#' @keywords internal
+#' @title Create a new google_config object
+#' @description Creates a new google_config object
+#'
+#' @param client_id The client ID for the app
+#' @param client_secret The client secret for the app
+#' @param app_url The URL for the app
+#'
+#' @return A google_config object
+#' @export
 new_google_config <- function(client_id, client_secret, app_url) {
   app_url <- add_trailing_slash(app_url)
   auth_url <- "https://accounts.google.com/o/oauth2/v2/auth"
