@@ -10,7 +10,8 @@ fetch_jwks <- function(url) {
 
 #' @title New openid configuration
 #' @description Creates a new openid configuration object
-#'   for the given provider
+#'   for the given provider. You can use this function or
+#'   the individual provider functions.
 #'
 #' @param provider The openid provider to use
 #' @param app_url The URL of the application
@@ -27,12 +28,18 @@ fetch_jwks <- function(url) {
 #'   - `client_secret`
 #'   - `tenant_id`
 #'
+#'   The `"auth0"` provider accepts the following arguments:
+#'   - `client_id`
+#'   - `client_secret`
+#'   - `auth0_domain`
+#'
 #' @return An openid_config object
 #' @export
 new_openid_config <- function(provider, app_url, ...) {
   switch(provider,
     entra_id = new_entra_id_config(app_url = app_url, ...),
-    google = new_google_config(app_url = app_url, ...)
+    google = new_google_config(app_url = app_url, ...),
+    auth0 = new_auth0_config(app_url = app_url, ...),
   )
 }
 

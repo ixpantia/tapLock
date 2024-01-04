@@ -26,6 +26,13 @@ The \code{"entra_id"} provider accepts the following arguments:
 \item \code{client_id}
 \item \code{client_secret}
 \item \code{tenant_id}
+}
+
+The \code{"auth0"} provider accepts the following arguments:
+\itemize{
+\item \code{client_id}
+\item \code{client_secret}
+\item \code{auth0_domain}
 }}
 }
 \value{
@@ -33,5 +40,6 @@ An openid_config object
 }
 \description{
 Creates a new openid configuration object
-for the given provider
+for the given provider. You can use this function or
+the individual provider functions.
 }

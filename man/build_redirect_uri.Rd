@@ -7,7 +7,7 @@
 build_redirect_uri(app_url)
 }
 \arguments{
-\item{app_url}{A string containing the app URL}
+\item{app_url}{A string containing the app URL with a trailing slash}
 }
 \value{
 A string containing the redirect URI

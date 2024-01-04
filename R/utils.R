@@ -46,6 +46,27 @@ build_cookie <- function(key, value) {
   glue::glue("{key}={value}; path=/; SameSite=Lax; HttpOnly")
 }
 
+map_null <- function(x, f) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  return(f(x))
+}
+
+add_trailing_slash_to_path <- function(path) {
+  if (!stringr::str_ends(path, "/")) {
+    path <- glue::glue("{path}/")
+  }
+  return(path)
+}
+
+if_length_0 <- function(x, y) {
+  if (length(x) == 0) {
+    return(y)
+  }
+  return(x)
+}
+
 #' @title Add trailing slash to URL
 #' @description If the app URL does not end with a slash, this function
 #'   will add one.
@@ -56,10 +77,9 @@ build_cookie <- function(key, value) {
 #' @keywords internal
 add_trailing_slash <- function(url) {
   url <- httr2::url_parse(url)
-  path <- url$path
-  if (!stringr::str_ends(path, "/")) {
-    url$path <- glue::glue("{path}/")
-  }
+  url$path <- url$path |>
+    map_null(add_trailing_slash_to_path) |>
+    if_length_0("/")
   httr2::url_build(url)
 }
 
