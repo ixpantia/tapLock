@@ -28,6 +28,9 @@
     <loc>/reference/access_token.html</loc>
   </url>
   <url>
+    <loc>/reference/add_trailing_slash.html</loc>
+  </url>
+  <url>
     <loc>/reference/build_cookie.html</loc>
   </url>
   <url>
@@ -68,6 +71,15 @@
   </url>
   <url>
     <loc>/reference/is_valid.html</loc>
+  </url>
+  <url>
+    <loc>/reference/new_auth0_config.html</loc>
+  </url>
+  <url>
+    <loc>/reference/new_entra_id_config.html</loc>
+  </url>
+  <url>
+    <loc>/reference/new_google_config.html</loc>
   </url>
   <url>
     <loc>/reference/new_openid_config.html</loc>
