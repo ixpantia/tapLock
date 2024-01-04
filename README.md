@@ -1,4 +1,4 @@
-# tapLock <img src="man/figures/tapLock.png" align="right" width=120 height=139 alt="" />
+# tapLock <a><img src="https://storage.googleapis.com/ix-paquetes-internos/logo-tapLock.png" align="right" width="30%"></a>
 
 Secure your R applications with OpenID Connect and OAuth 2.0.
 
