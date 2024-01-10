@@ -1,5 +1,5 @@
 Package: tapLock
-Title: Seamless SSO for R applications
+Title: Seamless SSO for R Applications
 Version: 0.1.0
 Authors@R: 
     c(person(given = "ixpantia, SRL",
