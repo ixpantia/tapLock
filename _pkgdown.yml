@@ -22,6 +22,10 @@ reference:
 - contents:
   - sso_shiny_app
   - token
+- title: Utilities
+  desc: Convenience functions for the user.
+- contents:
+  - use_futures
 - title: S3 methods
 - contents:
   - print.access_token
