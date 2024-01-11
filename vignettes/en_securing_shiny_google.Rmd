@@ -99,7 +99,7 @@ sso_shiny_app(auth_config, ui, server)
 
 Deploy your Shiny application as you normally would. The tapLock package handles the authentication process.
 We recommend deploying your application with a solution like Shiny Server
-(Open Source or Pro) or with [Faucet](https://github.com/andyquinterom/faucet).
+(Open Source or Pro) or with [faucet](https://github.com/ixpantia/faucet).
 Solutions like Posit Connect already include authentication and do not require
 tapLock.
 
