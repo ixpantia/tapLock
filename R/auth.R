@@ -6,11 +6,13 @@
 #'
 #' @return An access_token object
 #' @keywords internal
+#' @noRd
 access_token <- function(config, token_str) {
   UseMethod("access_token")
 }
 
 #' @keywords internal
+#' @noRd
 access_token.google_config <- function(config, token_str) {
   token_data <- decode_token(config, token_str)
   structure(
@@ -25,6 +27,7 @@ access_token.google_config <- function(config, token_str) {
 }
 
 #' @keywords internal
+#' @noRd
 access_token.entra_id_config <- function(config, token_str) {
   token_data <- decode_token(config, token_str)
   structure(
@@ -39,6 +42,7 @@ access_token.entra_id_config <- function(config, token_str) {
 }
 
 #' @keywords internal
+#' @noRd
 access_token.auth0_config <- function(config, token_str) {
   token_data <- decode_token(config, token_str)
   structure(
@@ -106,6 +110,7 @@ is_expired <- function(token) {
 #'
 #' @return A string containing the Authorization header
 #' @keywords internal
+#' @noRd
 get_bearer <- function(token) {
   paste0("Bearer ", token$access_token)
 }
@@ -117,6 +122,7 @@ get_bearer <- function(token) {
 #'
 #' @return A string containing the access token
 #' @keywords internal
+#' @noRd
 get_access_token <- function(token) {
   token$access_token
 }
