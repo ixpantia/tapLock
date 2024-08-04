@@ -4,3 +4,5 @@
 ^pkgdown$
 ^.github$
 ^example$
+^tapLock\.Rproj$
+^\.Rproj\.user$
