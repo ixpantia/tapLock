@@ -2,7 +2,7 @@ Package: tapLock
 Title: Seamless SSO for R Applications
 Version: 0.1.0
 Authors@R: 
-    person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cph")
+    person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cre")
 Description: The ultimate R package for swift and seamless Single Sign-On
     (SSO) integration. Designed for effortless compatibility with popular
     SSO providers like Google and Microsoft, tapLock streamlines
