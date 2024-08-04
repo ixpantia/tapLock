@@ -31,7 +31,7 @@ Before proceeding, ensure you have the following:
 Install tapLock from GitHub using the `pak` package:
 
 ```r
-pak::pak("ixpantia/taplock")
+install.packages("tapLock")
 ```
 
 ## Step 2: Create Google OAuth Credentials
