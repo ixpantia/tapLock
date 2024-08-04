@@ -12,6 +12,7 @@ The ultimate R package for swift and seamless Single Sign-On (SSO) integration. 
 Useful links:
 \itemize{
   \item \url{https://github.com/maurolepore/tapLock}
+  \item \url{https://maurolepore.github.io/tapLock/}
   \item Report bugs at \url{https://github.com/maurolepore/tapLock/issues}
 }
 
