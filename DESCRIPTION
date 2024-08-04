@@ -1,5 +1,5 @@
 Package: tapLock
-Title: Seamless Single Sign-On for R Applications
+Title: Seamless Single Sign-On
 Version: 0.1.0
 Authors@R: 
     person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cre")
