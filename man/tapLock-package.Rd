@@ -4,9 +4,9 @@
 \name{tapLock-package}
 \alias{tapLock}
 \alias{tapLock-package}
-\title{tapLock: Seamless Single Sign-On for R Applications}
+\title{tapLock: Seamless Single Sign-On}
 \description{
-Swift and seamless Single Sign-On (SSO) integration. Designed for effortless compatibility with popular 'SSO' providers like Google and Microsoft, tapLock streamlines authentication, enhancing both user experience and application security. Elevate your R-based projects with tapLock for a simplified, unified, and secure authentication process.
+Swift and seamless Single Sign-On (SSO) integration. Designed for effortless compatibility with popular Single Sign-On providers like Google and Microsoft, it streamlines authentication, enhancing both user experience and application security. Elevate your R-based projects for a simplified, unified, and secure authentication process.
 }
 \seealso{
 Useful links:
