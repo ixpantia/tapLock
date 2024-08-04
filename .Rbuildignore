@@ -8,3 +8,4 @@
 ^\.Rproj\.user$
 ^\.github$
 ^cran-comments\.md$
+^README\.Rmd$
