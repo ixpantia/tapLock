@@ -7,7 +7,7 @@
 add_trailing_slash(url)
 }
 \arguments{
-\item{app_url}{A string containing a URL}
+\item{url}{A string containing a URL}
 }
 \value{
 A string containing the URL with a trailing slash

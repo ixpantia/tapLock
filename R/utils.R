@@ -71,7 +71,7 @@ if_length_0 <- function(x, y) {
 #' @description If the app URL does not end with a slash, this function
 #'   will add one.
 #'
-#' @param app_url A string containing a URL
+#' @param url A string containing a URL
 #'
 #' @return A string containing the URL with a trailing slash
 #' @keywords internal
