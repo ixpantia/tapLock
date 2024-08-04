@@ -1,7 +1,6 @@
 Package: tapLock
 Title: Seamless Single Sign-On
 Version: 0.1.0
-Authors@R: 
 Authors@R: c(
     person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cph"),
     person("Andres", "Quintero", , "andres@ixpantia.com", role = c("aut", "cre"))
