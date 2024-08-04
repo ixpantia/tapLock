@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/maurolepore/tapLock/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maurolepore/tapLock/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/maurolepore/tapLock/branch/main/graph/badge.svg)](https://app.codecov.io/gh/maurolepore/tapLock?branch=main)
 <!-- badges: end -->
 
 The goal of tapLock is to secure your R applications with OpenID Connect
