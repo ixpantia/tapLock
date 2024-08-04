@@ -12,8 +12,8 @@ Description: The ultimate R package for swift and seamless Single Sign-On
     security. Elevate your R-based projects with tapLock for a simplified,
     unified, and secure authentication process.
 License: MIT + file LICENSE
-URL: https://github.com/ixpantia/tapLock
-BugReports: https://github.com/ixpantia/tapLock/issues
+URL: https://github.com/maurolepore/tapLock
+BugReports: https://github.com/maurolepore/tapLock/issues
 Imports:
     curl,
     future,
