@@ -7,3 +7,4 @@
 ^tapLock\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
+^cran-comments\.md$
