@@ -1,5 +1,9 @@
 # tapLock <a><img src="https://storage.googleapis.com/ix-paquetes-internos/logo-tapLock.png" align="right" width="30%"></a>
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/maurolepore/tapLock/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/maurolepore/tapLock/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 Secure your R applications with OpenID Connect and OAuth 2.0.
 
 ## Summary
