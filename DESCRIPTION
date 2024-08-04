@@ -2,7 +2,7 @@ Package: tapLock
 Title: Seamless Single Sign-On
 Version: 0.1.0
 Authors@R: 
-    person("FIXME", , , "maurolepore@gmail.com", role = c("cre", "auth"))
+    person("FIXME", , , "maurolepore@gmail.com", role = c("cre", "aut"))
 Description: Swift and seamless Single Sign-On (SSO) integration. Designed
     for effortless compatibility with popular Single Sign-On providers
     like Google and Microsoft, it streamlines authentication, enhancing
