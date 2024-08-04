@@ -45,7 +45,7 @@ pak::pak("ixpantia/tapLock")
 
 ## Example
 
-1. Create an authentication configuration
+### 1. Create an authentication configuration
 
 ``` r
 library(taplock)
@@ -61,7 +61,7 @@ auth_config <- new_openid_config(
 )
 ```
 
-2. Secure your Shiny application
+### 2. Secure your Shiny application
 
 To secure your Shiny Application you will simply need to expose
 an `sso_shiny_app` instead of a regular `shinyApp` at the end of your
