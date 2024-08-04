@@ -18,7 +18,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: ixpantia, SRL \email{hola@ixpantia.com}
+\strong{Maintainer}: 
+
+Other contributors:
+\itemize{
+  \item ixpantia, SRL \email{hola@ixpantia.com} [copyright holder]
+}
 
 }
 \keyword{internal}
