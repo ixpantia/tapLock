@@ -18,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: ixpantia, SRL \email{hola@ixpantia.com}
+\strong{Maintainer}: FIXME \email{maurolepore@gmail.com}
 
 }
 \keyword{internal}
