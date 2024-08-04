@@ -12,9 +12,8 @@ Description: Swift and seamless Single Sign-On (SSO) integration. Designed
     both user experience and application security. Elevate your R-based
     projects for a simplified, unified, and secure authentication process.
 License: MIT + file LICENSE
-URL: https://github.com/maurolepore/tapLock,
-    https://maurolepore.github.io/tapLock/
-BugReports: https://github.com/maurolepore/tapLock/issues
+URL: https://github.com/ixpantia/tapLock
+BugReports: https://github.com/ixpantia/tapLock/issues
 Imports:
     curl,
     future,
