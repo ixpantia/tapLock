@@ -23,7 +23,7 @@ your applications without the need to write almost any code.
 You can install tapLock from CRAN with:
 
 ``` r
-# install.packages("tapLock")
+install.packages("tapLock")
 ```
 
 You can install the development version of tapLock from
