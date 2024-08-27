@@ -1,31 +1,4 @@
-url: ~
+url: https://maurolepore.github.io/tapLock/
 template:
   bootstrap: 5
-reference:
-- title: Provider configurations
-  desc: Setup an authentication provider
-- contents:
-  - new_openid_config
-  - new_google_config
-  - new_entra_id_config
-  - new_auth0_config
-- title: Work with token
-  desc: Interact with the authentication token
-- contents:
-  - get_token_field
-  - expires_at
-  - expires_in
-  - is_expired
-  - is_valid
-- title: Shiny
-  desc: Functions to use inside Shiny
-- contents:
-  - sso_shiny_app
-  - token
-- title: Utilities
-  desc: Convenience functions for the user.
-- contents:
-  - use_futures
-- title: S3 methods
-- contents:
-  - print.access_token
+

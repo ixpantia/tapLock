@@ -4,3 +4,9 @@
 ^pkgdown$
 ^.github$
 ^example$
+^tapLock\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^cran-comments\.md$
+^README\.Rmd$
+^codecov\.yml$

@@ -1,37 +1,37 @@
 Package: tapLock
-Title: Seamless SSO for R Applications
+Title: Seamless Single Sign-On
 Version: 0.1.0
-Authors@R: 
-    c(person(given = "ixpantia, SRL",
-             role = "cph",
-             email = "hola@ixpantia.com"),
-      person("Andres", "Quintero", , "andres@ixpantia.com", role = c("aut", "cre")))
-Description: The ultimate R package for swift and seamless Single Sign-On (SSO)
-    integration. Designed for effortless compatibility with popular SSO providers
-    like Google and Microsoft, tapLock streamlines authentication, enhancing both
-    user experience and application security. Elevate your R-based projects with
-    tapLock for a simplified, unified, and secure authentication process.
+Authors@R: c(
+    person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cph"),
+    person("Andres", "Quintero", , "andres@ixpantia.com", role = c("aut", "cre"))
+  )
+Description: Swift and seamless Single Sign-On (SSO) integration. Designed
+    for effortless compatibility with popular Single Sign-On providers
+    like Google and Microsoft, it streamlines authentication, enhancing
+    both user experience and application security. Elevate your R-based
+    projects for a simplified, unified, and secure authentication process.
+License: MIT + file LICENSE
 URL: https://github.com/ixpantia/tapLock
 BugReports: https://github.com/ixpantia/tapLock/issues
-License: MIT + file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
 Imports:
-    httr2,
-    stringr,
-    jose,
-    purrr,
-    promises,
     curl,
-    glue,
-    lubridate,
     future,
-    stats
+    glue,
+    httr2,
+    jose,
+    lubridate,
+    promises,
+    purrr,
+    stats,
+    stringr
 Suggests:
     knitr,
     rmarkdown,
     shiny,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

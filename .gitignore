@@ -51,3 +51,4 @@ rsconnect/
 example/.Renviron
 docs
 inst/doc
+.Rproj.user

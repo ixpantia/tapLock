@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @noRd
 build_auth0_login_url <- function(auth_url, client_id, redirect_uri) {
   url <- httr2::url_parse(auth_url)
   url$query <- list(
@@ -44,16 +45,19 @@ new_auth0_config <- function(client_id, client_secret, auth0_domain, app_url) {
 }
 
 #' @keywords internal
+#' @noRd
 get_login_url.auth0_config <- function(config) {
   config$login_url
 }
 
 #' @keywords internal
+#' @noRd
 get_logout_url.auth0_config <- function(config) {
   stop("Not implemented")
 }
 
 #' @keywords internal
+#' @noRd
 request_token.auth0_config <- function(config, authorization_code) {
   res <- httr2::request(config$token_url) |>
     httr2::req_method("POST") |>
@@ -74,6 +78,7 @@ request_token.auth0_config <- function(config, authorization_code) {
 }
 
 #' @keywords internal
+#' @noRd
 decode_token.auth0_config <- function(config, token) {
   decoded <- config$jwks |>
     purrr::map(function(jwk) {
@@ -93,11 +98,13 @@ decode_token.auth0_config <- function(config, token) {
 }
 
 #' @keywords internal
+#' @noRd
 get_client_id.auth0_config <- function(config) {
   config$client_id
 }
 
 #' @keywords internal
+#' @noRd
 shiny_app.auth0_config <- function(config, app) {
   app_handler <- app$httpHandler
   login_handler <- function(req) {
