@@ -97,15 +97,10 @@ get_client_id.google_config <- function(config) {
   config$client_id
 }
 
-#' @keywords internal
-shiny_app.google_config <- function(config, app) {
-  app_handler <- app$httpHandler
-  login_handler <- function(req) {
-
-    # If the user sends a POST request to /login, we'll get a code
-    # and exchange it for an access token. We'll then redirect the
-    # user to the root path, setting a cookie with the access token.
-    if (req$PATH_INFO == "/login") {
+#' @export
+internal_add_auth_layers.google_config <- function(config, tower) {
+  tower |>
+    tower::add_get_route("/login", function(req) {
       query <- shiny::parseQueryString(req$QUERY_STRING)
       token <- promises::future_promise({
         request_token(config, query[["code"]])
@@ -133,9 +128,8 @@ shiny_app.google_config <- function(config, app) {
           }
         )
       )
-    }
-
-    if (req$PATH_INFO == "/logout") {
+    }) |>
+    tower::add_get_route("/logout", function(req) {
       return(
         shiny::httpResponse(
           status = 302,
@@ -145,72 +139,61 @@ shiny_app.google_config <- function(config, app) {
           )
         )
       )
-    }
+    }) |>
+    tower::add_http_layer(function(req) {
+      # Get the HTTP cookies from the request
+      cookies <- parse_cookies(req$HTTP_COOKIE)
+      req$PARSED_COOKIES <- cookies
 
-    # Get eh HTTP cookies from the request
-    cookies <- parse_cookies(req$HTTP_COOKIE)
-
-    # If the user requests the root path, we'll check if they have
-    # an access token. If they don't, we'll redirect them to the
-    # login page.
-    if (req$PATH_INFO == "/") {
+      # If the user requests the root path, we'll check if they have
+      # an access token. If they don't, we'll redirect them to the
+      # login page.
+      if (req$PATH_INFO == "/") {
+        token <- tryCatch(
+          expr = access_token(config, remove_bearer(cookies$access_token)),
+          error = function(e) {
+            return(NULL)
+          }
+        )
+        if (is.null(token)) {
+          return(
+            shiny::httpResponse(
+              status = 302,
+              headers = list(
+                Location = get_login_url(config)
+              )
+            )
+          )
+        }
+      }
+    }) |>
+    tower::add_http_layer(function(req) {
+      # If the user requests any other path, we'll check if they have
+      # an access token. If they don't, we'll return a 403 Forbidden
+      # response.
       token <- tryCatch(
-        expr = access_token(config, remove_bearer(cookies$access_token)),
+        expr = access_token(
+          config,
+          remove_bearer(req$PARSED_COOKIES$access_token)
+        ),
         error = function(e) {
           return(NULL)
         }
       )
+
       if (is.null(token)) {
         return(
           shiny::httpResponse(
-            status = 302,
-            headers = list(
-              Location = get_login_url(config)
-            )
+            status = 403,
+            content_type = "text/plain",
+            content = "Forbidden"
           )
         )
       }
-    }
 
-    # If the user requests any other path, we'll check if they have
-    # an access token. If they don't, we'll return a 403 Forbidden
-    # response.
-    token <- tryCatch(
-      expr = access_token(config, remove_bearer(cookies$access_token)),
-      error = function(e) {
-        return(NULL)
-      }
-    )
-
-    if (is.null(token)) {
-      return(
-        shiny::httpResponse(
-          status = 403,
-          content_type = "text/plain",
-          content = "Forbidden"
-        )
-      )
-    }
-
-    # If we have reached this point, the user has a valid access
-    # token and therefore we can return NULL, which will cause the
-    # app handler to be called.
-    return(NULL)
-  }
-
-  handlers <- list(
-    login_handler,
-    app_handler
-  )
-
-  app$httpHandler <- function(req) {
-    for (handler in handlers) {
-      response <- handler(req)
-      if (!is.null(response)) {
-        return(response)
-      }
-    }
-  }
-
-  return(app)
+      # If we have reached this point, the user has a valid access
+      # token and therefore we can return NULL, which will cause the
+      # app handler to be called.
+      return(NULL)
+    })
 }

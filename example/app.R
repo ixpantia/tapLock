@@ -28,5 +28,7 @@ server <- function(input, output, session) {
   })
 
 }
-
-sso_shiny_app(auth_config, ui, server)
+shinyApp(ui, server) |>
+  tower::create_tower() |>
+  tapLock::add_auth_layers(auth_config) |>
+  tower::build_tower()
