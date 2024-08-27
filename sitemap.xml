@@ -1,111 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/articles/en_securing_shiny_google.html</loc>
-  </url>
-  <url>
-    <loc>/articles/es_asegura_shiny_con_google.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/access_token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_trailing_slash.html</loc>
-  </url>
-  <url>
-    <loc>/reference/build_cookie.html</loc>
-  </url>
-  <url>
-    <loc>/reference/build_redirect_uri.html</loc>
-  </url>
-  <url>
-    <loc>/reference/decode_token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/expires_at.html</loc>
-  </url>
-  <url>
-    <loc>/reference/expires_in.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_access_token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_bearer.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_client_id.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_login_url.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_logout_url.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_token_field.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_expired.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_valid.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_auth0_config.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_entra_id_config.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_google_config.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_openid_config.html</loc>
-  </url>
-  <url>
-    <loc>/reference/parse_cookies.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.access_token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/refresh_jwks.html</loc>
-  </url>
-  <url>
-    <loc>/reference/remove_bearer.html</loc>
-  </url>
-  <url>
-    <loc>/reference/request_token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sso_shiny_app.html</loc>
-  </url>
-  <url>
-    <loc>/reference/token.html</loc>
-  </url>
-  <url>
-    <loc>/reference/use_futures.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://maurolepore.github.io/tapLock/404.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/LICENSE-text.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/LICENSE.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/articles/en_securing_shiny_google.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/articles/es_asegura_shiny_con_google.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/articles/index.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/authors.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/index.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/news/index.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/add_trailing_slash.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/build_cookie.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/build_redirect_uri.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/decode_token.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/expires_at.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/expires_in.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/get_client_id.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/get_login_url.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/get_logout_url.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/get_token_field.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/index.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/is_expired.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/is_valid.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/new_auth0_config.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/new_entra_id_config.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/new_google_config.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/new_openid_config.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/parse_cookies.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/print.access_token.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/refresh_jwks.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/remove_bearer.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/request_token.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/sso_shiny_app.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/tapLock-package.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/token.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/use_futures.html</loc></url>
 </urlset>
+
