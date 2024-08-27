@@ -67,7 +67,8 @@ request_token.entra_id_config <- function(config, authorization_code) {
       client_id = config$client_id,
       client_secret = config$client_secret,
       grant_type = "authorization_code",
-      redirect_uri = config$redirect_uri
+      redirect_uri = config$redirect_uri,
+      scope = "profile openid email offline_access"
     ) |>
     httr2::req_perform()
   resp_status <- httr2::resp_status(res)
@@ -75,7 +76,33 @@ request_token.entra_id_config <- function(config, authorization_code) {
     stop(httr2::resp_body_string(res))
   }
   resp_body <- httr2::resp_body_json(res)
-  access_token(config, resp_body$access_token)
+  list(
+    at = access_token(config, resp_body$access_token),
+    rt = resp_body$refresh_token
+  )
+}
+
+#' @keywords internal
+request_token_refresh.entra_id_config <- function(config, refresh_token) {
+  res <- httr2::request(config$token_url) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_form(
+      refresh_token = refresh_token,
+      client_id = config$client_id,
+      client_secret = config$client_secret,
+      grant_type = "refresh_token",
+      scope = "profile openid email offline_access"
+    ) |>
+    httr2::req_perform()
+  resp_status <- httr2::resp_status(res)
+  if (resp_status != 200) {
+    stop(httr2::resp_body_string(res))
+  }
+  resp_body <- httr2::resp_body_json(res)
+  list(
+    at = access_token(config, resp_body$access_token),
+    rt = resp_body$refresh_token
+  )
 }
 
 #' @keywords internal
@@ -121,7 +148,8 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
               status = 302,
               headers = list(
                 Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", get_bearer(token))
+                "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                "Set-Cookie" = build_cookie("refresh_token", token$rt)
               )
             )
           },
@@ -129,8 +157,9 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", "")
+                Location = get_login_url(config),
+                "Set-Cookie" = build_cookie("access_token", ""),
+                "Set-Cookie" = build_cookie("refresh_token", "")
               )
             )
           }
@@ -143,7 +172,8 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
           status = 302,
           headers = list(
             Location = config$app_url,
-            "Set-Cookie" = build_cookie("access_token", "")
+            "Set-Cookie" = build_cookie("access_token", ""),
+            "Set-Cookie" = build_cookie("refresh_token", "")
           )
         )
       )
@@ -163,7 +193,37 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
             return(NULL)
           }
         )
-        print(token)
+        if (is.null(token) && shiny::isTruthy(cookies$refresh_token)) {
+          # Ask for a new token using the refresh_token
+          token <- promises::future_promise({
+            request_token_refresh(config, cookies$refresh_token)
+          })
+          return(
+            promises::then(
+              token,
+              onFulfilled = function(token) {
+                shiny::httpResponse(
+                  status = 302,
+                  headers = list(
+                    Location = config$app_url,
+                    "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                    "Set-Cookie" = build_cookie("refresh_token", token$rt)
+                  )
+                )
+              },
+              onRejected = function(e) {
+                shiny::httpResponse(
+                  status = 302,
+                  headers = list(
+                    Location = get_login_url(config),
+                    "Set-Cookie" = build_cookie("access_token", ""),
+                    "Set-Cookie" = build_cookie("refresh_token", "")
+                  )
+                )
+              }
+            )
+          )
+        }
         if (is.null(token)) {
           return(
             shiny::httpResponse(

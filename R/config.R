@@ -79,6 +79,11 @@ request_token <- function(config, authorization_code) {
   UseMethod("request_token")
 }
 
+#' @keywords internal
+request_token_refresh <- function(config, refresh_token) {
+  UseMethod("request_token_refresh")
+}
+
 #' @title Decode a token
 #' @description Decodes a token
 #'
