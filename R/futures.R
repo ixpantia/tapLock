@@ -1,4 +1,3 @@
-
 #' @title Use futures for asynchronous computations
 #' @description Enable a future plan for asynchronous computations.
 #'   Since tapLock needs to do calls to external APIs, it can be a good idea

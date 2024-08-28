@@ -67,7 +67,8 @@ request_token.entra_id_config <- function(config, authorization_code) {
       client_id = config$client_id,
       client_secret = config$client_secret,
       grant_type = "authorization_code",
-      redirect_uri = config$redirect_uri
+      redirect_uri = config$redirect_uri,
+      scope = "profile openid email offline_access"
     ) |>
     httr2::req_perform()
   resp_status <- httr2::resp_status(res)
@@ -75,7 +76,33 @@ request_token.entra_id_config <- function(config, authorization_code) {
     stop(httr2::resp_body_string(res))
   }
   resp_body <- httr2::resp_body_json(res)
-  access_token(config, resp_body$access_token)
+  list(
+    at = access_token(config, resp_body$access_token),
+    rt = resp_body$refresh_token
+  )
+}
+
+#' @keywords internal
+request_token_refresh.entra_id_config <- function(config, refresh_token) {
+  res <- httr2::request(config$token_url) |>
+    httr2::req_method("POST") |>
+    httr2::req_body_form(
+      refresh_token = refresh_token,
+      client_id = config$client_id,
+      client_secret = config$client_secret,
+      grant_type = "refresh_token",
+      scope = "profile openid email offline_access"
+    ) |>
+    httr2::req_perform()
+  resp_status <- httr2::resp_status(res)
+  if (resp_status != 200) {
+    stop(httr2::resp_body_string(res))
+  }
+  resp_body <- httr2::resp_body_json(res)
+  list(
+    at = access_token(config, resp_body$access_token),
+    rt = resp_body$refresh_token
+  )
 }
 
 #' @keywords internal
@@ -85,6 +112,9 @@ decode_token.entra_id_config <- function(config, token) {
       tryCatch(
         jose::jwt_decode_sig(token, jwk),
         error = function(e) {
+          NULL
+        },
+        warning = function(w) {
           NULL
         }
       )
@@ -102,15 +132,10 @@ get_client_id.entra_id_config <- function(config) {
   config$client_id
 }
 
-#' @keywords internal
-shiny_app.entra_id_config <- function(config, app) {
-  app_handler <- app$httpHandler
-  login_handler <- function(req) {
-
-    # If the user sends a POST request to /login, we'll get a code
-    # and exchange it for an access token. We'll then redirect the
-    # user to the root path, setting a cookie with the access token.
-    if (req$REQUEST_METHOD == "POST" && req$PATH_INFO == "/login") {
+#' @export
+internal_add_auth_layers.entra_id_config <- function(config, tower) {
+  tower |>
+    tower::add_post_route("/login", function(req) {
       form <- shiny::parseQueryString(req[["rook.input"]]$read_lines())
       token <- promises::future_promise({
         request_token(config, form[["code"]])
@@ -123,7 +148,8 @@ shiny_app.entra_id_config <- function(config, app) {
               status = 302,
               headers = list(
                 Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", get_bearer(token))
+                "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                "Set-Cookie" = build_cookie("refresh_token", token$rt)
               )
             )
           },
@@ -131,91 +157,112 @@ shiny_app.entra_id_config <- function(config, app) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", "")
+                Location = get_login_url(config),
+                "Set-Cookie" = build_cookie("access_token", ""),
+                "Set-Cookie" = build_cookie("refresh_token", "")
               )
             )
           }
         )
       )
-    }
-
-    if (req$PATH_INFO == "/logout") {
+    }) |>
+    tower::add_get_route("/logout", function(req) {
       return(
         shiny::httpResponse(
           status = 302,
           headers = list(
             Location = config$app_url,
-            "Set-Cookie" = build_cookie("access_token", "")
+            "Set-Cookie" = build_cookie("access_token", ""),
+            "Set-Cookie" = build_cookie("refresh_token", "")
           )
         )
       )
-    }
+    }) |>
+    tower::add_http_layer(function(req) {
+      # Get the HTTP cookies from the request
+      cookies <- parse_cookies(req$HTTP_COOKIE)
+      req$PARSED_COOKIES <- cookies
 
-    # Get eh HTTP cookies from the request
-    cookies <- parse_cookies(req$HTTP_COOKIE)
-
-    # If the user requests the root path, we'll check if they have
-    # an access token. If they don't, we'll redirect them to the
-    # login page.
-    if (req$PATH_INFO == "/") {
+      # If the user requests the root path, we'll check if they have
+      # an access token. If they don't, we'll redirect them to the
+      # login page.
+      if (req$PATH_INFO == "/") {
+        token <- tryCatch(
+          expr = access_token(config, remove_bearer(cookies$access_token)),
+          error = function(e) {
+            return(NULL)
+          }
+        )
+        if (is.null(token) && shiny::isTruthy(cookies$refresh_token)) {
+          # Ask for a new token using the refresh_token
+          token <- promises::future_promise({
+            request_token_refresh(config, cookies$refresh_token)
+          })
+          return(
+            promises::then(
+              token,
+              onFulfilled = function(token) {
+                shiny::httpResponse(
+                  status = 302,
+                  headers = list(
+                    Location = config$app_url,
+                    "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                    "Set-Cookie" = build_cookie("refresh_token", token$rt)
+                  )
+                )
+              },
+              onRejected = function(e) {
+                shiny::httpResponse(
+                  status = 302,
+                  headers = list(
+                    Location = get_login_url(config),
+                    "Set-Cookie" = build_cookie("access_token", ""),
+                    "Set-Cookie" = build_cookie("refresh_token", "")
+                  )
+                )
+              }
+            )
+          )
+        }
+        if (is.null(token)) {
+          return(
+            shiny::httpResponse(
+              status = 302,
+              headers = list(
+                Location = get_login_url(config)
+              )
+            )
+          )
+        }
+      }
+    }) |>
+    tower::add_http_layer(function(req) {
+      # If the user requests any other path, we'll check if they have
+      # an access token. If they don't, we'll return a 403 Forbidden
+      # response.
       token <- tryCatch(
-        expr = access_token(config, remove_bearer(cookies$access_token)),
+        expr = access_token(
+          config,
+          remove_bearer(req$PARSED_COOKIES$access_token)
+        ),
         error = function(e) {
           return(NULL)
         }
       )
+
       if (is.null(token)) {
         return(
           shiny::httpResponse(
-            status = 302,
-            headers = list(
-              Location = get_login_url(config)
-            )
+            status = 403,
+            content_type = "text/plain",
+            content = "Forbidden"
           )
         )
       }
-    }
 
-    # If the user requests any other path, we'll check if they have
-    # an access token. If they don't, we'll return a 403 Forbidden
-    # response.
-    token <- tryCatch(
-      expr = access_token(config, remove_bearer(cookies$access_token)),
-      error = function(e) {
-        return(NULL)
-      }
-    )
-
-    if (is.null(token)) {
-      return(
-        shiny::httpResponse(
-          status = 403,
-          content_type = "text/plain",
-          content = "Forbidden"
-        )
-      )
-    }
-
-    # If we have reached this point, the user has a valid access
-    # token and therefore we can return NULL, which will cause the
-    # app handler to be called.
-    return(NULL)
-  }
-
-  handlers <- list(
-    login_handler,
-    app_handler
-  )
-
-  app$httpHandler <- function(req) {
-    for (handler in handlers) {
-      response <- handler(req)
-      if (!is.null(response)) {
-        return(response)
-      }
-    }
-  }
-
-  return(app)
+      # If we have reached this point, the user has a valid access
+      # token and therefore we can return NULL, which will cause the
+      # app handler to be called.
+      return(NULL)
+    })
 }
