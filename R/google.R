@@ -195,5 +195,20 @@ internal_add_auth_layers.google_config <- function(config, tower) {
       # token and therefore we can return NULL, which will cause the
       # app handler to be called.
       return(NULL)
+    }) |>
+    tower::add_server_layer(function(input, output, session) {
+      cookies <- parse_cookies(session$request$HTTP_COOKIE)
+
+      if (is.null(cookies$access_token)) {
+        stop("No access token")
+      }
+
+      token <- access_token(config, remove_bearer(cookies$access_token))
+
+      if (is_expired(token)) {
+        stop("Token expired")
+      }
+
+      session$userData$token <- token
     })
 }

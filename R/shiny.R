@@ -1,24 +1,3 @@
-#' @keywords internal
-rsso_server <- function(config, server_func) {
-  function(input, output, session) {
-    cookies <- parse_cookies(session$request$HTTP_COOKIE)
-
-    if (is.null(cookies$access_token)) {
-      stop("No access token")
-    }
-
-    token <- access_token(config, remove_bearer(cookies$access_token))
-
-    if (is_expired(token)) {
-      stop("Token expired")
-    }
-
-    session$userData$token <- token
-
-    server_func(input, output, session)
-  }
-}
-
 internal_add_auth_layers <- function(config, tower) {
   UseMethod("internal_add_auth_layers")
 }
