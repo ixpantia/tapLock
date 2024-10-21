@@ -15,7 +15,6 @@ URL: https://github.com/ixpantia/tapLock
 BugReports: https://github.com/ixpantia/tapLock/issues
 Imports:
     curl,
-    future,
     glue,
     httr2,
     jose,
@@ -23,12 +22,12 @@ Imports:
     promises,
     purrr,
     stats,
-    stringr
+    stringr,
+    shiny,
+    tower (>= 0.2.0)
 Suggests:
     knitr,
     rmarkdown,
-    shiny,
-    tower,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
