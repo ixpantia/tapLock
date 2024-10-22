@@ -70,16 +70,24 @@ request_token.entra_id_config <- function(config, authorization_code) {
       redirect_uri = config$redirect_uri,
       scope = "profile openid email offline_access"
     ) |>
-    httr2::req_perform()
-  resp_status <- httr2::resp_status(res)
-  if (resp_status != 200) {
-    stop(httr2::resp_body_string(res))
-  }
-  resp_body <- httr2::resp_body_json(res)
-  list(
-    at = access_token(config, resp_body$access_token),
-    rt = resp_body$refresh_token
+    httr2::req_perform_promise()
+
+
+  promises::then(
+    res,
+    onFulfilled = function(res) {
+      resp_status <- httr2::resp_status(res)
+      if (resp_status != 200) {
+        stop(httr2::resp_body_string(res))
+      }
+      resp_body <- httr2::resp_body_json(res)
+      list(
+        at = access_token(config, resp_body$access_token),
+        rt = resp_body$refresh_token
+      )
+    }
   )
+
 }
 
 #' @keywords internal
@@ -93,15 +101,21 @@ request_token_refresh.entra_id_config <- function(config, refresh_token) {
       grant_type = "refresh_token",
       scope = "profile openid email offline_access"
     ) |>
-    httr2::req_perform()
-  resp_status <- httr2::resp_status(res)
-  if (resp_status != 200) {
-    stop(httr2::resp_body_string(res))
-  }
-  resp_body <- httr2::resp_body_json(res)
-  list(
-    at = access_token(config, resp_body$access_token),
-    rt = resp_body$refresh_token
+    httr2::req_perform_promise()
+
+  promises::then(
+    res,
+    onFulfilled = function(res) {
+      resp_status <- httr2::resp_status(res)
+      if (resp_status != 200) {
+        stop(httr2::resp_body_string(res))
+      }
+      resp_body <- httr2::resp_body_json(res)
+      list(
+        at = access_token(config, resp_body$access_token),
+        rt = resp_body$refresh_token
+      )
+    }
   )
 }
 
@@ -137,9 +151,7 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
   tower |>
     tower::add_post_route("/login", function(req) {
       form <- shiny::parseQueryString(req[["rook.input"]]$read_lines())
-      token <- promises::future_promise({
-        request_token(config, form[["code"]])
-      })
+      token <- request_token(config, form[["code"]])
       return(
         promises::then(
           token,
@@ -186,45 +198,44 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
       # If the user requests the root path, we'll check if they have
       # an access token. If they don't, we'll redirect them to the
       # login page.
-      if (req$PATH_INFO == "/") {
-        token <- tryCatch(
-          expr = access_token(config, remove_bearer(cookies$access_token)),
-          error = function(e) {
-            return(NULL)
-          }
-        )
-        if (is.null(token) && shiny::isTruthy(cookies$refresh_token)) {
-          # Ask for a new token using the refresh_token
-          token <- promises::future_promise({
-            request_token_refresh(config, cookies$refresh_token)
-          })
-          return(
-            promises::then(
-              token,
-              onFulfilled = function(token) {
-                shiny::httpResponse(
-                  status = 302,
-                  headers = list(
-                    Location = config$app_url,
-                    "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
-                    "Set-Cookie" = build_cookie("refresh_token", token$rt)
-                  )
-                )
-              },
-              onRejected = function(e) {
-                shiny::httpResponse(
-                  status = 302,
-                  headers = list(
-                    Location = get_login_url(config),
-                    "Set-Cookie" = build_cookie("access_token", ""),
-                    "Set-Cookie" = build_cookie("refresh_token", "")
-                  )
-                )
-              }
-            )
-          )
+      req$TOKEN <- tryCatch(
+        expr = access_token(config, remove_bearer(cookies$access_token)),
+        error = function(e) {
+          return(NULL)
         }
-        if (is.null(token)) {
+      )
+      if (is.null(req$TOKEN) && shiny::isTruthy(cookies$refresh_token)) {
+        # Ask for a new token using the refresh_token
+        token <- request_token_refresh(config, cookies$refresh_token)
+        return(
+          promises::then(
+            token,
+            onFulfilled = function(token) {
+              response <- req$NEXT(req)
+              response$headers <- append(
+                response$headers,
+                list(
+                  "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                  "Set-Cookie" = build_cookie("refresh_token", token$rt)
+                )
+              )
+              return(response)
+            },
+            onRejected = function(e) {
+              shiny::httpResponse(
+                status = 302,
+                headers = list(
+                  Location = get_login_url(config),
+                  "Set-Cookie" = build_cookie("access_token", ""),
+                  "Set-Cookie" = build_cookie("refresh_token", "")
+                )
+              )
+            }
+          )
+        )
+      }
+      if (is.null(req$TOKEN)) {
+        if (req$PATH_INFO == "/") {
           return(
             shiny::httpResponse(
               status = 302,
@@ -233,37 +244,17 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
               )
             )
           )
-        }
-      }
-    }) |>
-    tower::add_http_layer(function(req) {
-      # If the user requests any other path, we'll check if they have
-      # an access token. If they don't, we'll return a 403 Forbidden
-      # response.
-      token <- tryCatch(
-        expr = access_token(
-          config,
-          remove_bearer(req$PARSED_COOKIES$access_token)
-        ),
-        error = function(e) {
-          return(NULL)
-        }
-      )
-
-      if (is.null(token)) {
-        return(
-          shiny::httpResponse(
-            status = 403,
-            content_type = "text/plain",
-            content = "Forbidden"
+        } else {
+          return(
+            shiny::httpResponse(
+              status = 403,
+              content_type = "text/plain",
+              content = "Forbidden"
+            )
           )
-        )
+        }
       }
-
-      # If we have reached this point, the user has a valid access
-      # token and therefore we can return NULL, which will cause the
-      # app handler to be called.
-      return(NULL)
+      req$NEXT(req)
     }) |>
     tower::add_server_layer(function(input, output, session) {
       cookies <- parse_cookies(session$request$HTTP_COOKIE)
