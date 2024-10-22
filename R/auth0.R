@@ -68,13 +68,19 @@ request_token.auth0_config <- function(config, authorization_code) {
       grant_type = "authorization_code",
       redirect_uri = config$redirect_uri
     ) |>
-    httr2::req_perform()
-  resp_status <- httr2::resp_status(res)
-  if (resp_status != 200) {
-    stop(httr2::resp_body_string(res))
-  }
-  resp_body <- httr2::resp_body_json(res)
-  access_token(config, resp_body$id_token)
+    httr2::req_perform_promise()
+
+  promises::then(
+    res,
+    onFulfilled = function(res) {
+      resp_status <- httr2::resp_status(res)
+      if (resp_status != 200) {
+        stop(httr2::resp_body_string(res))
+      }
+      resp_body <- httr2::resp_body_json(res)
+      access_token(config, resp_body$id_token)
+    }
+  )
 }
 
 #' @keywords internal
@@ -109,9 +115,7 @@ internal_add_auth_layers.auth0_config <- function(config, tower) {
   tower |>
     tower::add_get_route("/login", \(req) {
       query <- shiny::parseQueryString(req$QUERY_STRING)
-      token <- promises::future_promise({
-        request_token(config, query[["code"]])
-      })
+      token <- request_token(config, query[["code"]])
       return(
         promises::then(
           token,
@@ -155,14 +159,14 @@ internal_add_auth_layers.auth0_config <- function(config, tower) {
       # If the user requests the root path, we'll check if they have
       # an access token. If they don't, we'll redirect them to the
       # login page.
-      if (req$PATH_INFO == "/") {
-        token <- tryCatch(
-          expr = access_token(config, remove_bearer(cookies$access_token)),
-          error = function(e) {
-            return(NULL)
-          }
-        )
-        if (is.null(token)) {
+      req$TOKEN <- tryCatch(
+        expr = access_token(config, remove_bearer(cookies$access_token)),
+        error = function(e) {
+          return(NULL)
+        }
+      )
+      if (is.null(req$TOKEN)) {
+        if (req$PATH_INFO == "/") {
           return(
             shiny::httpResponse(
               status = 302,
@@ -171,37 +175,17 @@ internal_add_auth_layers.auth0_config <- function(config, tower) {
               )
             )
           )
-        }
-      }
-    }) |>
-    tower::add_http_layer(function(req) {
-      # If the user requests any other path, we'll check if they have
-      # an access token. If they don't, we'll return a 403 Forbidden
-      # response.
-      token <- tryCatch(
-        expr = access_token(
-          config,
-          remove_bearer(req$PARSED_COOKIES$access_token)
-        ),
-        error = function(e) {
-          return(NULL)
-        }
-      )
-
-      if (is.null(token)) {
-        return(
-          shiny::httpResponse(
-            status = 403,
-            content_type = "text/plain",
-            content = "Forbidden"
+        } else {
+          return(
+            shiny::httpResponse(
+              status = 403,
+              content_type = "text/plain",
+              content = "Forbidden"
+            )
           )
-        )
+        }
       }
-
-      # If we have reached this point, the user has a valid access
-      # token and therefore we can return NULL, which will cause the
-      # app handler to be called.
-      return(NULL)
+      req$NEXT(req)
     }) |>
     tower::add_server_layer(function(input, output, session) {
       cookies <- parse_cookies(session$request$HTTP_COOKIE)
