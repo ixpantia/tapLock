@@ -1,5 +1,5 @@
 Package: tapLock
-Title: Seamless Single Sign-On for 'shiny'
+Title: Seamless Single Sign-on for 'shiny'
 Version: 0.2.0
 Authors@R: c(
     person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cph"),
