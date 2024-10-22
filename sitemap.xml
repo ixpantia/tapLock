@@ -8,6 +8,7 @@
 <url><loc>https://maurolepore.github.io/tapLock/authors.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/index.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/news/index.html</loc></url>
+<url><loc>https://maurolepore.github.io/tapLock/reference/add_auth_layers.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/add_trailing_slash.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/build_cookie.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/build_redirect_uri.html</loc></url>
@@ -30,9 +31,7 @@
 <url><loc>https://maurolepore.github.io/tapLock/reference/refresh_jwks.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/remove_bearer.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/request_token.html</loc></url>
-<url><loc>https://maurolepore.github.io/tapLock/reference/sso_shiny_app.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/tapLock-package.html</loc></url>
 <url><loc>https://maurolepore.github.io/tapLock/reference/token.html</loc></url>
-<url><loc>https://maurolepore.github.io/tapLock/reference/use_futures.html</loc></url>
 </urlset>
 
