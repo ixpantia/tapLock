@@ -1,6 +1,6 @@
 Package: tapLock
-Title: Seamless Single Sign-On
-Version: 0.1.0
+Title: Seamless Single Sign-On for 'shiny'
+Version: 0.2.0
 Authors@R: c(
     person("ixpantia, SRL", , , "hola@ixpantia.com", role = "cph"),
     person("Andres", "Quintero", , "andres@ixpantia.com", role = c("aut", "cre"))
@@ -8,8 +8,8 @@ Authors@R: c(
 Description: Swift and seamless Single Sign-On (SSO) integration. Designed
     for effortless compatibility with popular Single Sign-On providers
     like Google and Microsoft, it streamlines authentication, enhancing
-    both user experience and application security. Elevate your R-based
-    projects for a simplified, unified, and secure authentication process.
+    both user experience and application security. Elevate your 'shiny'
+    applications for a simplified, unified, and secure authentication process.
 License: MIT + file LICENSE
 URL: https://github.com/ixpantia/tapLock
 BugReports: https://github.com/ixpantia/tapLock/issues
