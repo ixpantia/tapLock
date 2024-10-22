@@ -45,7 +45,7 @@ auth_config <- new_openid_config(
 ### 2. Secure your Shiny application
 
 To secure your Shiny Application you will need to add the middleware layers
-using [tower]("https://github.com/ixpantia/tower") and configure the
+using [tower](https://github.com/ixpantia/tower) and configure the
 client credentials.
 
 Here is an example of a Shiny application that uses tapLock to secure
