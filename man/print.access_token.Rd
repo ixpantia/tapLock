@@ -11,6 +11,9 @@
 
 \item{...}{Ignored}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 Prints an access token's expiration date
 }

@@ -61,6 +61,7 @@ access_token.auth0_config <- function(config, token_str) {
 #'
 #' @param x An access_token object
 #' @param ... Ignored
+#' @return No return value, called for side effects
 #' @export
 print.access_token <- function(x, ...) {
   expiration_date <- expires_at(x)
