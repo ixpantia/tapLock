@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/ixpantia/tapLock/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ixpantia/tapLock/actions/workflows/R-CMD-check.yaml)
+[![](https://www.r-pkg.org/badges/version/tapLock)](https://cran.r-project.org/package=badger)
 <!-- badges: end -->
 
 The goal of tapLock is to secure your R applications with OpenID Connect and
