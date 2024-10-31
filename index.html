@@ -152,6 +152,9 @@
 <h2 id="security-model">Security Model<a class="anchor" aria-label="anchor" href="#security-model"></a>
 </h2>
 <p>tapLock is unique in its approach to securing Shiny applications. tapLock utilizes middlewares that intercept all incoming requests (both HTTP and WebSocket requests) and validates the authentication token. This approach allows tapLock to be lean and efficient since no expensive WebSocket connections are started until the user is authenticated. It also prevents sensitive data in the UI portion of the application from being exposed to unauthenticated users.</p>
+<div class="float">
+<img src="man/flow.png" alt="Auth Flow"><div class="figcaption">Auth Flow</div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
