@@ -11,3 +11,7 @@
 ^README\.Rmd$
 ^codecov\.yml$
 ^Makefile$
+^src/\.cargo$
+^src/rust/vendor$
+^src/Makevars$
+^src/Makevars\.win$

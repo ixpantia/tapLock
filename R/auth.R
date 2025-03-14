@@ -8,7 +8,10 @@
 #' @keywords internal
 #' @noRd
 access_token <- function(config, token_str) {
-  UseMethod("access_token")
+  if (length(token_str) == 0) {
+    return(error("No access_token provided"))
+  }
+  config$decode_token(token_str)
 }
 
 #' @keywords internal
@@ -112,8 +115,8 @@ is_expired <- function(token) {
 #' @return A string containing the Authorization header
 #' @keywords internal
 #' @noRd
-get_bearer <- function(token) {
-  paste0("Bearer ", token$access_token)
+add_bearer <- function(token) {
+  paste0("Bearer ", token)
 }
 
 #' @title Get the access token string
@@ -148,16 +151,4 @@ expires_in <- function(token) {
 #' @export
 expires_at <- function(token) {
   token$exp
-}
-
-#' @title Get the issued at time of an access token
-#' @description Gets the issued at time of an access token
-#'
-#' @param token An access_token object
-#' @param field The field to get from the token
-#'
-#' @return A POSIXct object containing the date and time the token was issued
-#' @export
-get_token_field <- function(token, field) {
-  token$token_data[[field]]
 }

@@ -52,7 +52,7 @@ new_openid_config <- function(provider, app_url, ...) {
 #' @return A string containing the login URL
 #' @keywords internal
 get_login_url <- function(config) {
-  UseMethod("get_login_url")
+  config$get_authorization_url()
 }
 
 
@@ -67,6 +67,23 @@ get_logout_url <- function(config) {
   UseMethod("get_logout_url")
 }
 
+POLL_INTERVAL <- 0.005 # nolint: object_name_linter.
+
+async_future_to_promise <- function(x) {
+  promises::promise(function(resolve, reject) {
+
+    poll_recursive <- function() {
+      result <- x$poll()
+      if (result$is_ready()) return(resolve(result$value()))
+      if (result$is_error()) return(reject(result$error()))
+      if (result$is_pending()) return(later::later(poll_recursive, POLL_INTERVAL))
+    }
+
+    poll_recursive()
+
+  })
+}
+
 #' @title Request a token from the provider
 #' @description Requests a token from the provider
 #'
@@ -76,12 +93,12 @@ get_logout_url <- function(config) {
 #' @return An access_token object
 #' @keywords internal
 request_token <- function(config, authorization_code) {
-  UseMethod("request_token")
+  async_future_to_promise(config$request_token(authorization_code))
 }
 
 #' @keywords internal
 request_token_refresh <- function(config, refresh_token) {
-  UseMethod("request_token_refresh")
+  async_future_to_promise(config$request_token_refresh(refresh_token))
 }
 
 #' @title Decode a token

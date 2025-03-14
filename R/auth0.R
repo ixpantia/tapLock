@@ -124,7 +124,7 @@ internal_add_auth_layers.auth0_config <- function(config, tower) {
               status = 302,
               headers = list(
                 Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", get_bearer(token))
+                "Set-Cookie" = build_cookie("access_token", add_bearer(token))
               )
             )
           },

@@ -4,7 +4,7 @@
 \alias{new_google_config}
 \title{Create a new google_config object}
 \usage{
-new_google_config(client_id, client_secret, app_url)
+new_google_config(client_id, client_secret, app_url, use_refresh_token = TRUE)
 }
 \arguments{
 \item{client_id}{The client ID for the app}

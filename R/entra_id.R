@@ -160,7 +160,7 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
               status = 302,
               headers = list(
                 Location = config$app_url,
-                "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                "Set-Cookie" = build_cookie("access_token", add_bearer(token$at)),
                 "Set-Cookie" = build_cookie("refresh_token", token$rt)
               )
             )
@@ -215,7 +215,7 @@ internal_add_auth_layers.entra_id_config <- function(config, tower) {
               response$headers <- append(
                 response$headers,
                 list(
-                  "Set-Cookie" = build_cookie("access_token", get_bearer(token$at)),
+                  "Set-Cookie" = build_cookie("access_token", add_bearer(token$at)),
                   "Set-Cookie" = build_cookie("refresh_token", token$rt)
                 )
               )
