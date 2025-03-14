@@ -11,24 +11,21 @@ use oauth2::{
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use tokio::sync::RwLock;
 
 use crate::{OAuth2Client, OAuth2Error, OAuth2Response};
 
-const AUTH_BASE_URL: &'static str = "https://accounts.google.com/o/oauth2/v2/auth";
-const TOKEN_URL: &'static str = "https://oauth2.googleapis.com/token";
-const JWKS_URL: &'static str = "https://www.googleapis.com/oauth2/v3/certs";
+const JWKS_URL: &'static str = "https://login.microsoftonline.com/common/discovery/keys";
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-struct GoogleTokenResponseExtra {
+struct AzureADTokenResponseExtra {
     id_token: String,
 }
 
-impl oauth2::ExtraTokenFields for GoogleTokenResponseExtra {}
+impl oauth2::ExtraTokenFields for AzureADTokenResponseExtra {}
 
-type GoogleClientFull = Client<
+type AzureADClientFull = Client<
     BasicErrorResponse,
-    StandardTokenResponse<GoogleTokenResponseExtra, BasicTokenType>,
+    StandardTokenResponse<AzureADTokenResponseExtra, BasicTokenType>,
     BasicTokenIntrospectionResponse,
     StandardRevocableToken,
     BasicRevocationErrorResponse,
@@ -39,21 +36,17 @@ type GoogleClientFull = Client<
     oauth2::EndpointSet,
 >;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct GoogleTokenFields {
-    email: String,
-}
-
 #[derive(Clone)]
-pub struct GoogleOAuth2Client {
+pub struct AzureADOAuth2Client {
     reqwest_client: reqwest::Client,
-    client: GoogleClientFull,
+    client: AzureADClientFull,
     client_id: String,
     jwks: Arc<Mutex<JwkSet>>,
     use_refresh_token: bool,
+    tenant_id: String, // Add tenant ID
 }
 
-impl GoogleOAuth2Client {
+impl AzureADOAuth2Client {
     fn get_jwk(&self, kid: &str) -> Option<jsonwebtoken::jwk::Jwk> {
         let jwks = self.jwks.lock().expect("mutex should not be poissoned");
         jwks.find(&kid).cloned()
@@ -84,7 +77,7 @@ async fn refresh_jwks(
 }
 
 fn decode_access_token(
-    client: &GoogleOAuth2Client,
+    client: &AzureADOAuth2Client,
     access_token: String,
 ) -> Result<OAuth2Response, OAuth2Error> {
     let token_trim = access_token.trim_start_matches("Bearer").trim();
@@ -93,7 +86,9 @@ fn decode_access_token(
     let algo = jwt_header.alg;
     let decoding_key = client.get_jwk(&kid).ok_or(OAuth2Error::KidNotFound)?;
     let mut validation = Validation::new(algo);
+
     validation.set_audience(&[&client.client_id]);
+
     let val = decode::<serde_json::Value>(
         token_trim,
         &DecodingKey::from_jwk(&decoding_key)?,
@@ -108,7 +103,7 @@ fn decode_access_token(
 }
 
 async fn decode_token_and_maybe_refresh_jwks(
-    client: &GoogleOAuth2Client,
+    client: &AzureADOAuth2Client,
     access_token: String,
 ) -> Result<OAuth2Response, OAuth2Error> {
     let mut response = decode_access_token(client, access_token.clone());
@@ -119,18 +114,27 @@ async fn decode_token_and_maybe_refresh_jwks(
     response
 }
 
-pub async fn build_oauth2_state_google(
+pub async fn build_oauth2_state_azure_ad(
     client_id: &str,
     client_secret: &str,
     app_url: &str,
     use_refresh_token: bool,
-) -> std::result::Result<GoogleOAuth2Client, Box<dyn Error>> {
+    tenant_id: &str, // Add tenant ID as a parameter
+) -> std::result::Result<AzureADOAuth2Client, Box<dyn Error>> {
+    let auth_url = format!(
+        "https://login.microsoftonline.com/{}/oauth2/v2.0/authorize",
+        tenant_id
+    );
+    let token_url = format!(
+        "https://login.microsoftonline.com/{}/oauth2/v2.0/token",
+        tenant_id
+    );
     let redirect_url = format!("{app_url}login");
 
     let client = Client::new(ClientId::new(client_id.to_string()))
         .set_client_secret(ClientSecret::new(client_secret.to_string()))
-        .set_auth_uri(AuthUrl::new(AUTH_BASE_URL.to_string())?)
-        .set_token_uri(TokenUrl::new(TOKEN_URL.to_string())?)
+        .set_auth_uri(AuthUrl::new(auth_url)?)
+        .set_token_uri(TokenUrl::new(token_url)?)
         .set_redirect_uri(RedirectUrl::new(redirect_url)?);
 
     let reqwest_client = reqwest::Client::new();
@@ -138,17 +142,18 @@ pub async fn build_oauth2_state_google(
     let jwks = fetch_jwks(&reqwest_client).await?;
     let jwks = Arc::new(Mutex::new(jwks));
 
-    Ok(GoogleOAuth2Client {
+    Ok(AzureADOAuth2Client {
         reqwest_client,
         client,
         jwks,
         client_id: client_id.to_string(),
         use_refresh_token,
+        tenant_id: tenant_id.to_string(), // Store tenant ID
     })
 }
 
 #[async_trait::async_trait]
-impl OAuth2Client for GoogleOAuth2Client {
+impl OAuth2Client for AzureADOAuth2Client {
     async fn exchange_refresh_token(
         &self,
         refresh_token: String,
@@ -156,16 +161,20 @@ impl OAuth2Client for GoogleOAuth2Client {
         if !self.use_refresh_token {
             return Err(OAuth2Error::new("Refresh token is disabled"));
         }
+
         let token_result = self
             .client
             .exchange_refresh_token(&oauth2::RefreshToken::new(refresh_token.to_string()))
-            .add_scopes(["openid", "email", "profile"].map(|s| Scope::new(s.into())))
+            .add_scope(Scope::new(format!("{}/.default", self.client_id)))
+            .add_scopes(
+                ["openid", "email", "profile", "offline_access"].map(|s| Scope::new(s.into())),
+            ) // Add offline_access
             .request_async(&self.reqwest_client)
             .await
             .map_err(|e| e.to_string())?;
 
         let access_token = token_result.extra_fields().id_token.clone();
-        let mut response = decode_token_and_maybe_refresh_jwks(&self, access_token).await?;
+        let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
         if self.use_refresh_token {
             response.refresh_token = Some(
                 token_result
@@ -188,7 +197,7 @@ impl OAuth2Client for GoogleOAuth2Client {
             .map_err(|e| e.to_string())?;
 
         let access_token = token_result.extra_fields().id_token.clone();
-        let mut response = decode_token_and_maybe_refresh_jwks(&self, access_token).await?;
+        let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
 
         if self.use_refresh_token {
             response.refresh_token = token_result.refresh_token().map(|rt| rt.secret().clone());
@@ -207,9 +216,10 @@ impl OAuth2Client for GoogleOAuth2Client {
         let (auth_url, _csrf_token) = self
             .client
             .authorize_url(CsrfToken::new_random)
-            .add_extra_param("access_type", "offline")
-            .add_extra_param("prompt", "consent")
-            .add_scopes(["openid", "email", "profile"].map(|s| Scope::new(s.into())))
+            .add_scope(Scope::new(format!("{}/.default", self.client_id)))
+            .add_scopes(
+                ["openid", "email", "profile", "offline_access"].map(|s| Scope::new(s.into())),
+            ) // Add offline_access
             .url();
         auth_url.to_string()
     }

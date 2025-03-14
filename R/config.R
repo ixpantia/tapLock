@@ -55,28 +55,20 @@ get_login_url <- function(config) {
   config$get_authorization_url()
 }
 
-
-#' @title Get the logout URL for the provider
-#' @description Gets the URL for SLO (single logout)
-#'
-#' @param config An openid_config object
-#'
-#' @return A string containing the logout URL
-#' @keywords internal
-get_logout_url <- function(config) {
-  UseMethod("get_logout_url")
-}
-
 POLL_INTERVAL <- 0.005 # nolint: object_name_linter.
 
 async_future_to_promise <- function(x) {
   promises::promise(function(resolve, reject) {
 
+    if (is_error(x)) {
+      return(reject(x$value))
+    }
+
     poll_recursive <- function() {
       result <- x$poll()
+      if (result$is_pending()) return(later::later(poll_recursive, POLL_INTERVAL))
       if (result$is_ready()) return(resolve(result$value()))
       if (result$is_error()) return(reject(result$error()))
-      if (result$is_pending()) return(later::later(poll_recursive, POLL_INTERVAL))
     }
 
     poll_recursive()
@@ -99,36 +91,4 @@ request_token <- function(config, authorization_code) {
 #' @keywords internal
 request_token_refresh <- function(config, refresh_token) {
   async_future_to_promise(config$request_token_refresh(refresh_token))
-}
-
-#' @title Decode a token
-#' @description Decodes a token
-#'
-#' @param config An openid_config object
-#' @param token The token to decode
-#'
-#' @return A list containing the decoded token's data
-#' @keywords internal
-decode_token <- function(config, token) {
-  UseMethod("decode_token")
-}
-
-#' @title Get the client ID
-#' @description Gets the client ID for the provider
-#'
-#' @param config An openid_config object
-#'
-#' @return A string containing the client ID
-#' @keywords internal
-get_client_id <- function(config) {
-  UseMethod("get_client_id")
-}
-
-#' @title Refresh the JWKS
-#' @description Refreshes the JWKS
-#'
-#' @param config An openid_config object
-#' @keywords internal
-refresh_jwks <- function(config) {
-  UseMethod("refresh_jwks")
 }

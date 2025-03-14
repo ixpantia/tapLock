@@ -4,7 +4,13 @@
 \alias{new_entra_id_config}
 \title{Create a new entra_id_config object}
 \usage{
-new_entra_id_config(tenant_id, client_id, client_secret, app_url)
+new_entra_id_config(
+  tenant_id,
+  client_id,
+  client_secret,
+  app_url,
+  use_refresh_token = TRUE
+)
 }
 \arguments{
 \item{tenant_id}{The tenant ID for the app}

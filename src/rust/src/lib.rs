@@ -1,3 +1,4 @@
+mod entra_id;
 mod google;
 use extendr_api::prelude::*;
 use std::sync::Arc;
@@ -38,10 +39,13 @@ impl FutureResult {
     }
 }
 
-pub(crate) struct OAuth2Error {
-    msg: String,
+#[derive(Debug)]
+pub(crate) enum OAuth2Error {
+    Msg(String),
+    KidNotFound,
 }
 
+#[derive(Debug)]
 pub(crate) struct OAuth2Response {
     pub access_token: String,
     pub refresh_token: Option<String>,
@@ -90,14 +94,25 @@ impl IntoRobj for &OAuth2Response {
 
 impl IntoRobj for &OAuth2Error {
     fn into_robj(self) -> Robj {
-        Strings::from(&self.msg).into_robj()
+        match self {
+            OAuth2Error::Msg(msg) => Strings::from(&msg).into_robj(),
+            OAuth2Error::KidNotFound => "KidNotFound".into_robj(),
+        }
     }
 }
 
 impl OAuth2Error {
     pub(crate) fn new(msg: &str) -> Self {
-        OAuth2Error {
-            msg: msg.to_string(),
+        OAuth2Error::Msg(msg.to_string())
+    }
+}
+
+impl std::error::Error for OAuth2Error {}
+impl std::fmt::Display for OAuth2Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OAuth2Error::KidNotFound => write!(f, "KidNotFound"),
+            OAuth2Error::Msg(msg) => write!(f, "OAuth2Error: {msg}"),
         }
     }
 }
@@ -110,15 +125,19 @@ impl From<&str> for OAuth2Error {
 
 impl From<String> for OAuth2Error {
     fn from(msg: String) -> Self {
-        OAuth2Error { msg }
+        OAuth2Error::Msg(msg)
     }
 }
 
 impl From<jsonwebtoken::errors::Error> for OAuth2Error {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
-        OAuth2Error {
-            msg: format!("jsonwebtoken error: {value}"),
-        }
+        OAuth2Error::Msg(format!("jsonwebtoken error: {value}"))
+    }
+}
+
+impl From<reqwest::Error> for OAuth2Error {
+    fn from(value: reqwest::Error) -> Self {
+        OAuth2Error::Msg(format!("reqwest error: {value}"))
     }
 }
 
@@ -237,6 +256,39 @@ fn initialize_google_runtime(
     })
 }
 
+#[extendr]
+fn initialize_entra_id_runtime(
+    client_id: &str,
+    client_secret: &str,
+    app_url: &str,
+    tenant_id: &str,
+    use_refresh_token: bool,
+) -> Result<OAuth2Runtime> {
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let client = runtime.block_on(entra_id::build_oauth2_state_azure_ad(
+        client_id,
+        client_secret,
+        app_url,
+        use_refresh_token,
+        tenant_id,
+    ))?;
+
+    let client = Arc::from(client);
+
+    let app_url = Strings::from(app_url).into_robj();
+
+    Ok(OAuth2Runtime {
+        client,
+        runtime,
+        app_url,
+    })
+}
+
 /// Return string `"Hello world!"` to R.
 /// @export
 #[extendr]
@@ -251,6 +303,7 @@ extendr_module! {
     mod tapLock;
     fn hello_world;
     fn initialize_google_runtime;
+    fn initialize_entra_id_runtime;
     impl AsyncFuture;
     impl FutureResult;
     impl OAuth2Runtime;

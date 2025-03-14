@@ -16,6 +16,8 @@ hello_world <- function() .Call(wrap__hello_world)
 
 initialize_google_runtime <- function(client_id, client_secret, app_url, use_refresh_token) .Call(wrap__initialize_google_runtime, client_id, client_secret, app_url, use_refresh_token)
 
+initialize_entra_id_runtime <- function(client_id, client_secret, app_url, tenant_id, use_refresh_token) .Call(wrap__initialize_entra_id_runtime, client_id, client_secret, app_url, tenant_id, use_refresh_token)
+
 AsyncFuture <- new.env(parent = emptyenv())
 
 AsyncFuture$poll <- function() .Call(wrap__AsyncFuture__poll, self)

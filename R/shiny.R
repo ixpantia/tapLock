@@ -20,7 +20,7 @@ internal_add_auth_layers <- function(config, tower) {
             shiny::httpResponse(
               status = 302,
               headers = list(
-                Location = config$app_url,
+                Location = config$get_app_url(),
                 "Set-Cookie" = build_cookie("access_token", ""),
                 "Set-Cookie" = build_cookie("refresh_token", "")
               )
@@ -34,7 +34,7 @@ internal_add_auth_layers <- function(config, tower) {
         shiny::httpResponse(
           status = 302,
           headers = list(
-            Location = config$app_url,
+            Location = config$get_app_url(),
             "Set-Cookie" = build_cookie("access_token", ""),
             "Set-Cookie" = build_cookie("refresh_token", "")
           )
