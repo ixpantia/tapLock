@@ -1,7 +1,7 @@
 TARGET_DIR = ./rust/target
 LIBDIR = $(TARGET_DIR)/release
 STATLIB = $(LIBDIR)/libtapLock.a
-PKG_LIBS = -L$(LIBDIR) -ltapLock -lR -lssl -lcrypto -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc
+PKG_LIBS = -L$(LIBDIR) -ltapLock
 
 all: C_clean
 
