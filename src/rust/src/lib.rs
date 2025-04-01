@@ -1,3 +1,4 @@
+mod cookies;
 mod entra_id;
 mod google;
 use extendr_api::prelude::*;
@@ -301,6 +302,7 @@ fn hello_world() -> &'static str {
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
     mod tapLock;
+    use cookies;
     fn hello_world;
     fn initialize_google_runtime;
     fn initialize_entra_id_runtime;

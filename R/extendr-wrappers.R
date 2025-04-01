@@ -18,6 +18,15 @@ initialize_google_runtime <- function(client_id, client_secret, app_url, use_ref
 
 initialize_entra_id_runtime <- function(client_id, client_secret, app_url, tenant_id, use_refresh_token) .Call(wrap__initialize_entra_id_runtime, client_id, client_secret, app_url, tenant_id, use_refresh_token)
 
+#' @title Parse cookies
+#' @description Parses cookies from a string
+#'
+#' @param x A string containing the cookies
+#'
+#' @return A list containing the cookies
+#' @keywords internal
+parse_cookies <- function(cookie_string) .Call(wrap__parse_cookies, cookie_string)
+
 AsyncFuture <- new.env(parent = emptyenv())
 
 AsyncFuture$poll <- function() .Call(wrap__AsyncFuture__poll, self)

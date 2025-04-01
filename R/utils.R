@@ -13,27 +13,6 @@ remove_bearer <- function(token) {
   return(token)
 }
 
-#' @title Parse cookies
-#' @description Parses cookies from a string
-#'
-#' @param x A string containing the cookies
-#'
-#' @return A list containing the cookies
-#' @keywords internal
-parse_cookies <- function(x) {
-  if (is.null(x)) {
-    return(list())
-  }
-  cookie_pairs <- stringr::str_split(x, "; ")
-  cookie_pairs <- purrr::map(cookie_pairs, ~ stringr::str_split(.x, "=", n = 2))[[1]]
-  cookie_pairs <- purrr::map(cookie_pairs, function(.x) {
-    .x[2] <- curl::curl_unescape(.x[2])
-    stats::setNames(.x[2], .x[1])
-  })
-  cookie_pairs <- purrr::flatten(cookie_pairs)
-  return(cookie_pairs)
-}
-
 #' @title Build a cookie
 #' @description Builds an HttpOnly cookie from a key and value
 #'
