@@ -17,14 +17,16 @@ Imports:
     curl,
     glue,
     httr2,
-    jose,
     lubridate,
     promises,
     purrr,
     stats,
     stringr,
     shiny,
-    tower (>= 0.2.0)
+    later,
+    methods,
+    tower (>= 0.2.0),
+    rlang
 Suggests:
     knitr,
     rmarkdown,

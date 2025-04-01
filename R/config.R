@@ -1,13 +1,3 @@
-#' @keywords internal
-fetch_jwks <- function(url) {
-  httr2::request(url) |>
-    httr2::req_method("GET") |>
-    httr2::req_perform() |>
-    httr2::resp_body_json() |>
-    purrr::pluck("keys") |>
-    purrr::map(jose::jwk_read)
-}
-
 #' @title New openid configuration
 #' @description Creates a new openid configuration object
 #'   for the given provider. You can use this function or
@@ -38,8 +28,7 @@ fetch_jwks <- function(url) {
 new_openid_config <- function(provider, app_url, ...) {
   switch(provider,
     entra_id = new_entra_id_config(app_url = app_url, ...),
-    google = new_google_config(app_url = app_url, ...),
-    auth0 = new_auth0_config(app_url = app_url, ...),
+    google = new_google_config(app_url = app_url, ...)
   )
 }
 
