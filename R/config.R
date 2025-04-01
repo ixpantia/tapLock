@@ -18,11 +18,6 @@
 #'   - `client_secret`
 #'   - `tenant_id`
 #'
-#'   The `"auth0"` provider accepts the following arguments:
-#'   - `client_id`
-#'   - `client_secret`
-#'   - `auth0_domain`
-#'
 #' @return An openid_config object
 #' @export
 new_openid_config <- function(provider, app_url, ...) {
