@@ -13,6 +13,7 @@ Description: Swift and seamless Single Sign-On (SSO) integration. Designed
 License: MIT + file LICENSE
 URL: https://github.com/ixpantia/tapLock
 BugReports: https://github.com/ixpantia/tapLock/issues
+Depends: R (>= 4.2.0)
 Imports:
     glue,
     promises,
