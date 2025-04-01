@@ -5,6 +5,7 @@
 #' @param client_id The client ID for the app
 #' @param client_secret The client secret for the app
 #' @param app_url The URL for the app
+#' @param use_refresh_token Enable the use of refresh tokens
 #'
 #' @return An entra_id_config object
 #' @export

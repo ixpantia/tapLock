@@ -14,51 +14,6 @@ access_token <- function(config, token_str) {
   config$decode_token(token_str)
 }
 
-#' @keywords internal
-#' @noRd
-access_token.google_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("google_token", "access_token")
-  )
-}
-
-#' @keywords internal
-#' @noRd
-access_token.entra_id_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("entra_id_token", "access_token")
-  )
-}
-
-#' @keywords internal
-#' @noRd
-access_token.auth0_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("auth0_token", "access_token")
-  )
-}
-
 #' @title Print an access token
 #' @description Prints an access token's expiration date
 #'

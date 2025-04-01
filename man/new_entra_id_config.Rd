@@ -20,6 +20,8 @@ new_entra_id_config(
 \item{client_secret}{The client secret for the app}
 
 \item{app_url}{The URL for the app}
+
+\item{use_refresh_token}{Enable the use of refresh tokens}
 }
 \value{
 An entra_id_config object
