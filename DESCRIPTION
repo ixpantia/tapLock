@@ -16,8 +16,6 @@ BugReports: https://github.com/ixpantia/tapLock/issues
 Imports:
     curl,
     glue,
-    httr2,
-    lubridate,
     promises,
     purrr,
     stats,
