@@ -16,3 +16,4 @@
 ^src/Makevars$
 ^src/Makevars\.win$
 ^Taskfile.yml$
+^src/rust/target$

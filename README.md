@@ -117,4 +117,4 @@ connections are started until the user is authenticated. It also prevents
 sensitive data in the UI portion of the application from being exposed to
 unauthenticated users.
 
-![Auth Flow](man/flow.png)
+![Auth Flow](vignettes/flow.png)

@@ -14,7 +14,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{OAuth2Client, OAuth2Error, OAuth2Response};
 
-const JWKS_URL: &'static str = "https://login.microsoftonline.com/common/discovery/keys";
+const JWKS_URL: &str = "https://login.microsoftonline.com/common/discovery/keys";
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AzureADTokenResponseExtra {
@@ -43,18 +43,17 @@ pub struct AzureADOAuth2Client {
     client_id: String,
     jwks: Arc<Mutex<JwkSet>>,
     use_refresh_token: bool,
-    tenant_id: String, // Add tenant ID
+    _tenant_id: String,
 }
 
 impl AzureADOAuth2Client {
     fn get_jwk(&self, kid: &str) -> Option<jsonwebtoken::jwk::Jwk> {
         let jwks = self.jwks.lock().expect("mutex should not be poissoned");
-        jwks.find(&kid).cloned()
+        jwks.find(kid).cloned()
     }
 }
 
 async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, OAuth2Error> {
-    eprintln!("Refreshing JwkSet");
     let jwks = reqwest_client
         .get(JWKS_URL)
         .send()
@@ -148,7 +147,7 @@ pub async fn build_oauth2_state_azure_ad(
         jwks,
         client_id: client_id.to_string(),
         use_refresh_token,
-        tenant_id: tenant_id.to_string(), // Store tenant ID
+        _tenant_id: tenant_id.to_string(), // Store tenant ID
     })
 }
 

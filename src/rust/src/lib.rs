@@ -5,6 +5,7 @@ use extendr_api::prelude::*;
 use std::sync::Arc;
 use tokio::sync::oneshot::{self, error::TryRecvError};
 
+#[extendr]
 enum FutureResult {
     Error(Robj),
     Ready(Robj),
@@ -142,6 +143,7 @@ impl From<reqwest::Error> for OAuth2Error {
     }
 }
 
+#[extendr]
 struct AsyncFuture {
     rx: oneshot::Receiver<std::result::Result<OAuth2Response, OAuth2Error>>,
 }
@@ -175,6 +177,7 @@ pub(crate) trait OAuth2Client: Send + Sync {
     fn get_authorization_url(&self) -> String;
 }
 
+#[extendr]
 struct OAuth2Runtime {
     runtime: tokio::runtime::Runtime,
     client: Arc<dyn OAuth2Client>,

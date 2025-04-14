@@ -6,7 +6,7 @@ env:
 tasks:
   clean:
     - rm -rf src/.cargo
-    - rm -rf orbweaver_*.tar.gz
+    - rm -rf tapLock_*.tar.gz
   vendor:
     dir: src/rust
     deps:
@@ -40,4 +40,4 @@ tasks:
       - clean
     cmds:
       - R CMD build .
-      - R CMD check orbweaver*.tar.gz
+      - R CMD check tapLock*.tar.gz

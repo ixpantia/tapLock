@@ -11,13 +11,12 @@ use oauth2::{
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use tokio::sync::RwLock;
 
 use crate::{OAuth2Client, OAuth2Error, OAuth2Response};
 
-const AUTH_BASE_URL: &'static str = "https://accounts.google.com/o/oauth2/v2/auth";
-const TOKEN_URL: &'static str = "https://oauth2.googleapis.com/token";
-const JWKS_URL: &'static str = "https://www.googleapis.com/oauth2/v3/certs";
+const AUTH_BASE_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
+const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
+const JWKS_URL: &str = "https://www.googleapis.com/oauth2/v3/certs";
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct GoogleTokenResponseExtra {
@@ -56,12 +55,11 @@ pub struct GoogleOAuth2Client {
 impl GoogleOAuth2Client {
     fn get_jwk(&self, kid: &str) -> Option<jsonwebtoken::jwk::Jwk> {
         let jwks = self.jwks.lock().expect("mutex should not be poissoned");
-        jwks.find(&kid).cloned()
+        jwks.find(kid).cloned()
     }
 }
 
 async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, OAuth2Error> {
-    eprintln!("Refreshing JwkSet");
     let jwks = reqwest_client
         .get(JWKS_URL)
         .send()
@@ -165,7 +163,7 @@ impl OAuth2Client for GoogleOAuth2Client {
             .map_err(|e| e.to_string())?;
 
         let access_token = token_result.extra_fields().id_token.clone();
-        let mut response = decode_token_and_maybe_refresh_jwks(&self, access_token).await?;
+        let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
         if self.use_refresh_token {
             response.refresh_token = Some(
                 token_result
@@ -188,7 +186,7 @@ impl OAuth2Client for GoogleOAuth2Client {
             .map_err(|e| e.to_string())?;
 
         let access_token = token_result.extra_fields().id_token.clone();
-        let mut response = decode_token_and_maybe_refresh_jwks(&self, access_token).await?;
+        let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
 
         if self.use_refresh_token {
             response.refresh_token = token_result.refresh_token().map(|rt| rt.secret().clone());
