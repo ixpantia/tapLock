@@ -13,18 +13,16 @@ Description: Swift and seamless Single Sign-On (SSO) integration. Designed
 License: MIT + file LICENSE
 URL: https://github.com/ixpantia/tapLock
 BugReports: https://github.com/ixpantia/tapLock/issues
+Depends: R (>= 4.2.0)
 Imports:
-    curl,
     glue,
-    httr2,
-    jose,
-    lubridate,
     promises,
-    purrr,
-    stats,
     stringr,
     shiny,
-    tower (>= 0.2.0)
+    later,
+    methods,
+    tower (>= 0.2.0),
+    rlang
 Suggests:
     knitr,
     rmarkdown,
@@ -35,3 +33,5 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Config/rextendr/version: 0.3.1.9001
+SystemRequirements: Cargo (Rust's package manager), rustc, OpenSSL >= 1.0.2

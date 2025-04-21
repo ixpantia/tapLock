@@ -1,0 +1,43 @@
+version: '3'
+
+env:
+  NOT_CRAN: true
+
+tasks:
+  clean:
+    - rm -rf src/.cargo
+    - rm -rf tapLock_*.tar.gz
+  vendor:
+    dir: src/rust
+    deps:
+      - clean
+    cmds:
+      - rm -rf src/.cargo
+      - cargo vendor-filterer > vendor-config.toml
+      - tar -cJf vendor.tar.xz vendor/
+      - rm -rf vendor/
+  test:
+    deps:
+      - test-rust
+      - test-r
+  test-rust:
+    dir: src/rust
+    cmds:
+      - cargo test
+  test-r:
+    cmds:
+      - Rscript -e "devtools::test()"
+  install:
+    deps:
+     #  - document
+    cmds:
+      - Rscript -e "devtools::install()"
+  document:
+    cmds:
+      - Rscript -e "rextendr::document()"
+  check:
+    deps:
+      - clean
+    cmds:
+      - R CMD build .
+      - R CMD check tapLock*.tar.gz

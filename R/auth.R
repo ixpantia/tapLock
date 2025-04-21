@@ -8,52 +8,10 @@
 #' @keywords internal
 #' @noRd
 access_token <- function(config, token_str) {
-  UseMethod("access_token")
-}
-
-#' @keywords internal
-#' @noRd
-access_token.google_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("google_token", "access_token")
-  )
-}
-
-#' @keywords internal
-#' @noRd
-access_token.entra_id_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("entra_id_token", "access_token")
-  )
-}
-
-#' @keywords internal
-#' @noRd
-access_token.auth0_config <- function(config, token_str) {
-  token_data <- decode_token(config, token_str)
-  structure(
-    list(
-      access_token = token_str,
-      exp = lubridate::as_datetime(token_data$exp),
-      iat = lubridate::as_datetime(token_data$iat),
-      token_data = token_data
-    ),
-    class = c("auth0_token", "access_token")
-  )
+  if (length(token_str) == 0) {
+    return(error("No access_token provided"))
+  }
+  config$decode_token(token_str)
 }
 
 #' @title Print an access token
@@ -112,8 +70,8 @@ is_expired <- function(token) {
 #' @return A string containing the Authorization header
 #' @keywords internal
 #' @noRd
-get_bearer <- function(token) {
-  paste0("Bearer ", token$access_token)
+add_bearer <- function(token) {
+  paste0("Bearer ", token)
 }
 
 #' @title Get the access token string
@@ -148,16 +106,4 @@ expires_in <- function(token) {
 #' @export
 expires_at <- function(token) {
   token$exp
-}
-
-#' @title Get the issued at time of an access token
-#' @description Gets the issued at time of an access token
-#'
-#' @param token An access_token object
-#' @param field The field to get from the token
-#'
-#' @return A POSIXct object containing the date and time the token was issued
-#' @export
-get_token_field <- function(token, field) {
-  token$token_data[[field]]
 }

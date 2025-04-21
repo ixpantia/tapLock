@@ -4,7 +4,13 @@
 \alias{new_entra_id_config}
 \title{Create a new entra_id_config object}
 \usage{
-new_entra_id_config(tenant_id, client_id, client_secret, app_url)
+new_entra_id_config(
+  tenant_id,
+  client_id,
+  client_secret,
+  app_url,
+  use_refresh_token = TRUE
+)
 }
 \arguments{
 \item{tenant_id}{The tenant ID for the app}
@@ -14,6 +20,8 @@ new_entra_id_config(tenant_id, client_id, client_secret, app_url)
 \item{client_secret}{The client secret for the app}
 
 \item{app_url}{The URL for the app}
+
+\item{use_refresh_token}{Enable the use of refresh tokens}
 }
 \value{
 An entra_id_config object

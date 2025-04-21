@@ -4,7 +4,7 @@
 \alias{new_google_config}
 \title{Create a new google_config object}
 \usage{
-new_google_config(client_id, client_secret, app_url)
+new_google_config(client_id, client_secret, app_url, use_refresh_token = TRUE)
 }
 \arguments{
 \item{client_id}{The client ID for the app}
@@ -12,6 +12,8 @@ new_google_config(client_id, client_secret, app_url)
 \item{client_secret}{The client secret for the app}
 
 \item{app_url}{The URL for the app}
+
+\item{use_refresh_token}{Enable the use of refresh tokens}
 }
 \value{
 A google_config object

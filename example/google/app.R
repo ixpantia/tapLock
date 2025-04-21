@@ -1,5 +1,6 @@
 library(shiny)
-library(tapLock)
+#library(tapLock)
+devtools::load_all("../..")
 
 auth_config <- new_openid_config(
   provider = "google",
@@ -18,12 +19,12 @@ server <- function(input, output, session) {
 
 
   output$profile <- renderUI({
-    tags$img(src = get_token_field(token(), "picture"))
+    tags$img(src = token()$picture)
   })
 
   output$user <- renderText({
-    given_name <- get_token_field(token(), "given_name")
-    family_name <- get_token_field(token(), "family_name")
+    given_name <- token()$given_name
+    family_name <- token()$family_name
     expires_at <- expires_at(token())
     glue::glue(
       "Hello {given_name} {family_name}!",
