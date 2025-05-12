@@ -63,11 +63,12 @@ Reemplaza `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, y `SHINY_APP_URL` con tus 
 
 ## Paso 4: Modificar Aplicación Shiny
 
-Modifica tu aplicación Shiny para usar `sso_shiny_app`:
+Modifica tu aplicación Shiny para usar `tower` y `tapLock` para manejar la autenticación. Aquí hay un ejemplo básico:
 
 ```r
 library(shiny)
 library(tapLock)
+library(tower)
 
 # Configuración de autenticación
 auth_config <- new_openid_config(
@@ -92,7 +93,10 @@ server <- function(input, output, session) {
 }
 
 # Asegurar aplicación Shiny con tapLock
-sso_shiny_app(auth_config, ui, server)
+shinyApp(ui, server) |>
+  tower::create_tower() |>
+  tapLock::add_auth_layers(auth_config) |>
+  tower::build_tower()
 ```
 
 ## Paso 5: Desplegar la Aplicación
