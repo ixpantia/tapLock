@@ -128,11 +128,13 @@ entorno.</p>
 <div class="section level2">
 <h2 id="paso-4-modificar-aplicación-shiny">Paso 4: Modificar Aplicación Shiny<a class="anchor" aria-label="anchor" href="#paso-4-modificar-aplicaci%C3%B3n-shiny"></a>
 </h2>
-<p>Modifica tu aplicación Shiny para usar
-<code>sso_shiny_app</code>:</p>
+<p>Modifica tu aplicación Shiny para usar <code>tower</code> y
+<code>tapLock</code> para manejar la autenticación. Aquí hay un ejemplo
+básico:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ixpantia/tapLock" class="external-link">tapLock</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ixpantia/tower" class="external-link">tower</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Configuración de autenticación</span></span>
 <span><span class="va">auth_config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_openid_config.html">new_openid_config</a></span><span class="op">(</span></span>
@@ -157,7 +159,10 @@ entorno.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Asegurar aplicación Shiny con tapLock</span></span>
-<span><span class="fu">sso_shiny_app</span><span class="op">(</span><span class="va">auth_config</span>, <span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">tower</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/tower/man/create_tower.html" class="external-link">create_tower</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">tapLock</span><span class="fu">::</span><span class="fu"><a href="../reference/add_auth_layers.html">add_auth_layers</a></span><span class="op">(</span><span class="va">auth_config</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">tower</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/tower/man/build_tower.html" class="external-link">build_tower</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="paso-5-desplegar-la-aplicación">Paso 5: Desplegar la Aplicación<a class="anchor" aria-label="anchor" href="#paso-5-desplegar-la-aplicaci%C3%B3n"></a>
@@ -187,7 +192,7 @@ seguridad y privacidad.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>
