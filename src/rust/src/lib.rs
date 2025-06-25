@@ -1,9 +1,12 @@
 mod cookies;
 mod entra_id;
+mod error;
 mod google;
 use extendr_api::prelude::*;
 use std::sync::Arc;
 use tokio::sync::oneshot::{self, error::TryRecvError};
+
+use crate::error::TapLockError;
 
 #[extendr]
 enum FutureResult {
@@ -39,12 +42,6 @@ impl FutureResult {
             _ => Null,
         }
     }
-}
-
-#[derive(Debug)]
-pub(crate) enum OAuth2Error {
-    Msg(String),
-    KidNotFound,
 }
 
 #[derive(Debug)]
@@ -94,58 +91,9 @@ impl IntoRobj for &OAuth2Response {
     }
 }
 
-impl IntoRobj for &OAuth2Error {
-    fn into_robj(self) -> Robj {
-        match self {
-            OAuth2Error::Msg(msg) => Strings::from(&msg).into_robj(),
-            OAuth2Error::KidNotFound => "KidNotFound".into_robj(),
-        }
-    }
-}
-
-impl OAuth2Error {
-    pub(crate) fn new(msg: &str) -> Self {
-        OAuth2Error::Msg(msg.to_string())
-    }
-}
-
-impl std::error::Error for OAuth2Error {}
-impl std::fmt::Display for OAuth2Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            OAuth2Error::KidNotFound => write!(f, "KidNotFound"),
-            OAuth2Error::Msg(msg) => write!(f, "OAuth2Error: {msg}"),
-        }
-    }
-}
-
-impl From<&str> for OAuth2Error {
-    fn from(value: &str) -> Self {
-        OAuth2Error::new(value)
-    }
-}
-
-impl From<String> for OAuth2Error {
-    fn from(msg: String) -> Self {
-        OAuth2Error::Msg(msg)
-    }
-}
-
-impl From<jsonwebtoken::errors::Error> for OAuth2Error {
-    fn from(value: jsonwebtoken::errors::Error) -> Self {
-        OAuth2Error::Msg(format!("jsonwebtoken error: {value}"))
-    }
-}
-
-impl From<reqwest::Error> for OAuth2Error {
-    fn from(value: reqwest::Error) -> Self {
-        OAuth2Error::Msg(format!("reqwest error: {value}"))
-    }
-}
-
 #[extendr]
 struct AsyncFuture {
-    rx: oneshot::Receiver<std::result::Result<OAuth2Response, OAuth2Error>>,
+    rx: oneshot::Receiver<std::result::Result<OAuth2Response, TapLockError>>,
 }
 
 #[extendr]
@@ -167,13 +115,15 @@ pub(crate) trait OAuth2Client: Send + Sync {
     async fn exchange_refresh_token(
         &self,
         refresh_token: String,
-    ) -> std::result::Result<OAuth2Response, OAuth2Error>;
-    async fn exchange_code(&self, code: String)
-        -> std::result::Result<OAuth2Response, OAuth2Error>;
+    ) -> std::result::Result<OAuth2Response, TapLockError>;
+    async fn exchange_code(
+        &self,
+        code: String,
+    ) -> std::result::Result<OAuth2Response, TapLockError>;
     fn decode_access_token(
         &self,
         access_token: String,
-    ) -> std::result::Result<OAuth2Response, OAuth2Error>;
+    ) -> std::result::Result<OAuth2Response, TapLockError>;
     fn get_authorization_url(&self) -> String;
 }
 
@@ -240,7 +190,7 @@ fn initialize_google_runtime(
         .worker_threads(1)
         .enable_all()
         .build()
-        .map_err(|e| e.to_string())?;
+        .map_err(TapLockError::Io)?;
 
     let client = runtime.block_on(google::build_oauth2_state_google(
         client_id,
@@ -272,7 +222,7 @@ fn initialize_entra_id_runtime(
         .worker_threads(1)
         .enable_all()
         .build()
-        .map_err(|e| e.to_string())?;
+        .map_err(TapLockError::Io)?;
 
     let client = runtime.block_on(entra_id::build_oauth2_state_azure_ad(
         client_id,

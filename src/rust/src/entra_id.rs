@@ -9,10 +9,10 @@ use oauth2::{
     StandardRevocableToken, StandardTokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::sync::{Arc, Mutex};
 
-use crate::{OAuth2Client, OAuth2Error, OAuth2Response};
+use crate::error::TapLockError;
+use crate::{OAuth2Client, OAuth2Response};
 
 const JWKS_URL: &str = "https://login.microsoftonline.com/common/discovery/keys";
 
@@ -53,7 +53,7 @@ impl AzureADOAuth2Client {
     }
 }
 
-async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, OAuth2Error> {
+async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, TapLockError> {
     let jwks = reqwest_client
         .get(JWKS_URL)
         .send()
@@ -66,7 +66,7 @@ async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, OAuth2Er
 async fn refresh_jwks(
     reqwest_client: &reqwest::Client,
     jwks_container: &Mutex<JwkSet>,
-) -> Result<(), OAuth2Error> {
+) -> Result<(), TapLockError> {
     let jwks = fetch_jwks(reqwest_client).await?;
     let mut jwks_container = jwks_container
         .lock()
@@ -78,12 +78,12 @@ async fn refresh_jwks(
 fn decode_access_token(
     client: &AzureADOAuth2Client,
     access_token: String,
-) -> Result<OAuth2Response, OAuth2Error> {
+) -> Result<OAuth2Response, TapLockError> {
     let token_trim = access_token.trim_start_matches("Bearer").trim();
     let jwt_header = decode_header(token_trim)?;
-    let kid = jwt_header.kid.ok_or("Missing `kid` in token header")?;
+    let kid = jwt_header.kid.ok_or(TapLockError::KidNotFound)?;
     let algo = jwt_header.alg;
-    let decoding_key = client.get_jwk(&kid).ok_or(OAuth2Error::KidNotFound)?;
+    let decoding_key = client.get_jwk(&kid).ok_or(TapLockError::KidNotFound)?;
     let mut validation = Validation::new(algo);
 
     validation.set_audience(&[&client.client_id]);
@@ -104,9 +104,9 @@ fn decode_access_token(
 async fn decode_token_and_maybe_refresh_jwks(
     client: &AzureADOAuth2Client,
     access_token: String,
-) -> Result<OAuth2Response, OAuth2Error> {
+) -> Result<OAuth2Response, TapLockError> {
     let mut response = decode_access_token(client, access_token.clone());
-    if let Err(OAuth2Error::KidNotFound) = response {
+    if let Err(TapLockError::KidNotFound) = response {
         refresh_jwks(&client.reqwest_client, &client.jwks).await?;
         response = decode_access_token(client, access_token.clone());
     }
@@ -119,16 +119,11 @@ pub async fn build_oauth2_state_azure_ad(
     app_url: &str,
     use_refresh_token: bool,
     tenant_id: &str, // Add tenant ID as a parameter
-) -> std::result::Result<AzureADOAuth2Client, Box<dyn Error>> {
-    let auth_url = format!(
-        "https://login.microsoftonline.com/{}/oauth2/v2.0/authorize",
-        tenant_id
-    );
-    let token_url = format!(
-        "https://login.microsoftonline.com/{}/oauth2/v2.0/token",
-        tenant_id
-    );
-    let redirect_url = format!("{app_url}login");
+) -> std::result::Result<AzureADOAuth2Client, TapLockError> {
+    let auth_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize");
+    let token_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token");
+    let app_url = app_url.trim_end_matches('/');
+    let redirect_url = format!("{app_url}/login");
 
     let client = Client::new(ClientId::new(client_id.to_string()))
         .set_client_secret(ClientSecret::new(client_secret.to_string()))
@@ -156,9 +151,9 @@ impl OAuth2Client for AzureADOAuth2Client {
     async fn exchange_refresh_token(
         &self,
         refresh_token: String,
-    ) -> std::result::Result<OAuth2Response, OAuth2Error> {
+    ) -> std::result::Result<OAuth2Response, TapLockError> {
         if !self.use_refresh_token {
-            return Err(OAuth2Error::new("Refresh token is disabled"));
+            return Err(TapLockError::new("Refresh token is disabled"));
         }
 
         let token_result = self
@@ -169,8 +164,7 @@ impl OAuth2Client for AzureADOAuth2Client {
                 ["openid", "email", "profile", "offline_access"].map(|s| Scope::new(s.into())),
             ) // Add offline_access
             .request_async(&self.reqwest_client)
-            .await
-            .map_err(|e| e.to_string())?;
+            .await?;
 
         let access_token = token_result.extra_fields().id_token.clone();
         let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
@@ -187,13 +181,12 @@ impl OAuth2Client for AzureADOAuth2Client {
     async fn exchange_code(
         &self,
         code: String,
-    ) -> std::result::Result<OAuth2Response, OAuth2Error> {
+    ) -> std::result::Result<OAuth2Response, TapLockError> {
         let token_result = self
             .client
             .exchange_code(AuthorizationCode::new(code))
             .request_async(&self.reqwest_client)
-            .await
-            .map_err(|e| e.to_string())?;
+            .await?;
 
         let access_token = token_result.extra_fields().id_token.clone();
         let mut response = decode_token_and_maybe_refresh_jwks(self, access_token).await?;
@@ -207,7 +200,7 @@ impl OAuth2Client for AzureADOAuth2Client {
     fn decode_access_token(
         &self,
         access_token: String,
-    ) -> std::result::Result<OAuth2Response, OAuth2Error> {
+    ) -> std::result::Result<OAuth2Response, TapLockError> {
         let response = decode_access_token(self, access_token)?;
         Ok(response)
     }

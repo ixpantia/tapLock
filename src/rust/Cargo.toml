@@ -16,6 +16,7 @@ oauth2 = { version = "5.0.0", features = ["reqwest"] }
 reqwest = { version = "0.12.14", features = ["json", "rustls-tls"], default-features = false }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+thiserror = "2.0.12"
 tokio = { version = "1.44.1", features = ["rt-multi-thread"] }
 urlencoding = "2.1.3"
 
