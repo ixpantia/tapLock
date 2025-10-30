@@ -58,6 +58,7 @@ internal_add_auth_layers <- function(config, tower) {
           promises::then(
             token,
             onFulfilled = function(token) {
+              req$TOKEN <- token
               response <- req$NEXT(req)
               response$headers <- append(
                 response$headers,
