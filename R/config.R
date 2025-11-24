@@ -18,12 +18,20 @@
 #'   - `client_secret`
 #'   - `tenant_id`
 #'
+#'   The `"keycloak"` provider accepts the following arguments:
+#'   - `base_url`
+#'   - `realm`
+#'   - `client_id`
+#'   - `client_secret`
+#'
 #' @return An openid_config object
 #' @export
 new_openid_config <- function(provider, app_url, ...) {
-  switch(provider,
+  switch(
+    provider,
     entra_id = new_entra_id_config(app_url = app_url, ...),
-    google = new_google_config(app_url = app_url, ...)
+    google = new_google_config(app_url = app_url, ...),
+    keycloak = new_keycloak_config(app_url = app_url, ...)
   )
 }
 
@@ -43,20 +51,22 @@ POLL_INTERVAL <- 0.005 # nolint: object_name_linter.
 
 async_future_to_promise <- function(x) {
   promises::promise(function(resolve, reject) {
-
     if (is_error(x)) {
       return(reject(x$value))
     }
 
     poll_recursive <- function() {
       result <- x$poll()
-      if (result$is_pending()) return(later::later(poll_recursive, POLL_INTERVAL))
-      if (result$is_ready()) return(resolve(result$value()))
+      if (result$is_pending()) {
+        return(later::later(poll_recursive, POLL_INTERVAL))
+      }
+      if (result$is_ready()) {
+        return(resolve(result$value()))
+      }
       if (result$is_error()) return(reject(result$error()))
     }
 
     poll_recursive()
-
   })
 }
 

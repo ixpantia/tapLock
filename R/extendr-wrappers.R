@@ -18,6 +18,8 @@ initialize_google_runtime <- function(client_id, client_secret, app_url, use_ref
 
 initialize_entra_id_runtime <- function(client_id, client_secret, app_url, tenant_id, use_refresh_token) .Call(wrap__initialize_entra_id_runtime, client_id, client_secret, app_url, tenant_id, use_refresh_token)
 
+initialize_keycloak_runtime <- function(client_id, client_secret, app_url, base_url, realm, use_refresh_token) .Call(wrap__initialize_keycloak_runtime, client_id, client_secret, app_url, base_url, realm, use_refresh_token)
+
 #' @title Parse cookies
 #' @description Parses cookies from a string
 #'

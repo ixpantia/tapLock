@@ -1,4 +1,4 @@
-use jsonwebtoken::{decode, decode_header, jwk::JwkSet, DecodingKey, Validation};
+use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use oauth2::TokenResponse;
 use oauth2::{
     basic::{
@@ -9,9 +9,9 @@ use oauth2::{
     StandardRevocableToken, StandardTokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 use crate::error::TapLockError;
+use crate::jwks::JwksClient;
 use crate::{OAuth2Client, OAuth2Response};
 
 const AUTH_BASE_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -38,47 +38,19 @@ type GoogleClientFull = Client<
     oauth2::EndpointSet,
 >;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct GoogleTokenFields {
-    email: String,
-}
-
 #[derive(Clone)]
 pub struct GoogleOAuth2Client {
     reqwest_client: reqwest::Client,
     client: GoogleClientFull,
     client_id: String,
-    jwks: Arc<Mutex<JwkSet>>,
+    jwks_client: JwksClient,
     use_refresh_token: bool,
 }
 
 impl GoogleOAuth2Client {
     fn get_jwk(&self, kid: &str) -> Option<jsonwebtoken::jwk::Jwk> {
-        let jwks = self.jwks.lock().expect("mutex should not be poissoned");
-        jwks.find(kid).cloned()
+        self.jwks_client.get_key(kid)
     }
-}
-
-async fn fetch_jwks(reqwest_client: &reqwest::Client) -> Result<JwkSet, TapLockError> {
-    let jwks = reqwest_client
-        .get(JWKS_URL)
-        .send()
-        .await?
-        .json::<JwkSet>()
-        .await?;
-    Ok(jwks)
-}
-
-async fn refresh_jwks(
-    reqwest_client: &reqwest::Client,
-    jwks_container: &Mutex<JwkSet>,
-) -> Result<(), TapLockError> {
-    let jwks = fetch_jwks(reqwest_client).await?;
-    let mut jwks_container = jwks_container
-        .lock()
-        .expect("mutex should not be poissoned");
-    *jwks_container = jwks;
-    Ok(())
 }
 
 fn decode_access_token(
@@ -109,12 +81,25 @@ async fn decode_token_and_maybe_refresh_jwks(
     client: &GoogleOAuth2Client,
     access_token: String,
 ) -> Result<OAuth2Response, TapLockError> {
-    let mut response = decode_access_token(client, access_token.clone());
-    if let Err(TapLockError::KidNotFound) = response {
-        refresh_jwks(&client.reqwest_client, &client.jwks).await?;
-        response = decode_access_token(client, access_token.clone());
-    }
-    response
+    let token_trim = access_token.trim_start_matches("Bearer").trim();
+    let jwt_header = decode_header(token_trim)?;
+    let kid = jwt_header.kid.ok_or(TapLockError::KidNotFound)?;
+
+    let decoding_key = client.jwks_client.get_key_with_refresh(&kid).await?;
+    let algo = jwt_header.alg;
+    let mut validation = Validation::new(algo);
+    validation.set_audience(&[&client.client_id]);
+    let val = decode::<serde_json::Value>(
+        token_trim,
+        &DecodingKey::from_jwk(&decoding_key)?,
+        &validation,
+    )?;
+
+    Ok(OAuth2Response {
+        access_token,
+        refresh_token: None,
+        fields: val.claims,
+    })
 }
 
 pub async fn build_oauth2_state_google(
@@ -134,13 +119,12 @@ pub async fn build_oauth2_state_google(
 
     let reqwest_client = reqwest::Client::new();
 
-    let jwks = fetch_jwks(&reqwest_client).await?;
-    let jwks = Arc::new(Mutex::new(jwks));
+    let jwks_client = JwksClient::new(JWKS_URL.to_string(), reqwest_client.clone()).await?;
 
     Ok(GoogleOAuth2Client {
         reqwest_client,
         client,
-        jwks,
+        jwks_client,
         client_id: client_id.to_string(),
         use_refresh_token,
     })
