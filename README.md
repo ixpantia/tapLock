@@ -101,6 +101,7 @@ tapLock supports the following authentication providers:
 
 - [Google](https://developers.google.com/identity/protocols/oauth2/openid-connect)
 - [Microsoft Entra ID](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id)
+- [Keycloak](https://www.keycloak.org/)
 
 > If you need support for other providers, please contact us at
 > [hola@ixpantia.com](mailto:hola@ixpantia.com). Or, if you are a

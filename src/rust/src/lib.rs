@@ -2,6 +2,8 @@ mod cookies;
 mod entra_id;
 mod error;
 mod google;
+mod jwks;
+mod keycloak;
 use extendr_api::prelude::*;
 use std::sync::Arc;
 use tokio::sync::oneshot::{self, error::TryRecvError};
@@ -243,6 +245,41 @@ fn initialize_entra_id_runtime(
     })
 }
 
+#[extendr]
+fn initialize_keycloak_runtime(
+    client_id: &str,
+    client_secret: &str,
+    app_url: &str,
+    base_url: &str,
+    realm: &str,
+    use_refresh_token: bool,
+) -> Result<OAuth2Runtime> {
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()
+        .map_err(TapLockError::Io)?;
+
+    let client = runtime.block_on(keycloak::build_oauth2_state_keycloak(
+        client_id,
+        client_secret,
+        app_url,
+        base_url,
+        realm,
+        use_refresh_token,
+    ))?;
+
+    let client = Arc::from(client);
+
+    let app_url = Strings::from(app_url).into_robj();
+
+    Ok(OAuth2Runtime {
+        client,
+        runtime,
+        app_url,
+    })
+}
+
 /// Return string `"Hello world!"` to R.
 /// @export
 #[extendr]
@@ -259,6 +296,7 @@ extendr_module! {
     fn hello_world;
     fn initialize_google_runtime;
     fn initialize_entra_id_runtime;
+    fn initialize_keycloak_runtime;
     impl AsyncFuture;
     impl FutureResult;
     impl OAuth2Runtime;

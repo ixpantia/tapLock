@@ -14,18 +14,16 @@ use crate::error::TapLockError;
 use crate::jwks::JwksClient;
 use crate::{OAuth2Client, OAuth2Response};
 
-const JWKS_URL: &str = "https://login.microsoftonline.com/common/discovery/keys";
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
-struct AzureADTokenResponseExtra {
+struct KeycloakTokenResponseExtra {
     id_token: String,
 }
 
-impl oauth2::ExtraTokenFields for AzureADTokenResponseExtra {}
+impl oauth2::ExtraTokenFields for KeycloakTokenResponseExtra {}
 
-type AzureADClientFull = Client<
+type KeycloakClientFull = Client<
     BasicErrorResponse,
-    StandardTokenResponse<AzureADTokenResponseExtra, BasicTokenType>,
+    StandardTokenResponse<KeycloakTokenResponseExtra, BasicTokenType>,
     BasicTokenIntrospectionResponse,
     StandardRevocableToken,
     BasicRevocationErrorResponse,
@@ -37,23 +35,22 @@ type AzureADClientFull = Client<
 >;
 
 #[derive(Clone)]
-pub struct AzureADOAuth2Client {
+pub struct KeycloakOAuth2Client {
     reqwest_client: reqwest::Client,
-    client: AzureADClientFull,
+    client: KeycloakClientFull,
     client_id: String,
     jwks_client: JwksClient,
     use_refresh_token: bool,
-    _tenant_id: String,
 }
 
-impl AzureADOAuth2Client {
+impl KeycloakOAuth2Client {
     fn get_jwk(&self, kid: &str) -> Option<jsonwebtoken::jwk::Jwk> {
         self.jwks_client.get_key(kid)
     }
 }
 
 fn decode_access_token(
-    client: &AzureADOAuth2Client,
+    client: &KeycloakOAuth2Client,
     access_token: String,
 ) -> Result<OAuth2Response, TapLockError> {
     let token_trim = access_token.trim_start_matches("Bearer").trim();
@@ -62,9 +59,7 @@ fn decode_access_token(
     let algo = jwt_header.alg;
     let decoding_key = client.get_jwk(&kid).ok_or(TapLockError::KidNotFound)?;
     let mut validation = Validation::new(algo);
-
     validation.set_audience(&[&client.client_id]);
-
     let val = decode::<serde_json::Value>(
         token_trim,
         &DecodingKey::from_jwk(&decoding_key)?,
@@ -79,7 +74,7 @@ fn decode_access_token(
 }
 
 async fn decode_token_and_maybe_refresh_jwks(
-    client: &AzureADOAuth2Client,
+    client: &KeycloakOAuth2Client,
     access_token: String,
 ) -> Result<OAuth2Response, TapLockError> {
     let token_trim = access_token.trim_start_matches("Bearer").trim();
@@ -89,9 +84,7 @@ async fn decode_token_and_maybe_refresh_jwks(
     let decoding_key = client.jwks_client.get_key_with_refresh(&kid).await?;
     let algo = jwt_header.alg;
     let mut validation = Validation::new(algo);
-
     validation.set_audience(&[&client.client_id]);
-
     let val = decode::<serde_json::Value>(
         token_trim,
         &DecodingKey::from_jwk(&decoding_key)?,
@@ -105,15 +98,18 @@ async fn decode_token_and_maybe_refresh_jwks(
     })
 }
 
-pub async fn build_oauth2_state_azure_ad(
+pub async fn build_oauth2_state_keycloak(
     client_id: &str,
     client_secret: &str,
     app_url: &str,
+    base_url: &str,
+    realm: &str,
     use_refresh_token: bool,
-    tenant_id: &str, // Add tenant ID as a parameter
-) -> std::result::Result<AzureADOAuth2Client, TapLockError> {
-    let auth_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize");
-    let token_url = format!("https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token");
+) -> std::result::Result<KeycloakOAuth2Client, TapLockError> {
+    let base_url = base_url.trim_end_matches('/');
+    let auth_url = format!("{base_url}/realms/{realm}/protocol/openid-connect/auth");
+    let token_url = format!("{base_url}/realms/{realm}/protocol/openid-connect/token");
+    let jwks_url = format!("{base_url}/realms/{realm}/protocol/openid-connect/certs");
     let app_url = app_url.trim_end_matches('/');
     let redirect_url = format!("{app_url}/login");
 
@@ -125,20 +121,19 @@ pub async fn build_oauth2_state_azure_ad(
 
     let reqwest_client = reqwest::Client::new();
 
-    let jwks_client = JwksClient::new(JWKS_URL.to_string(), reqwest_client.clone()).await?;
+    let jwks_client = JwksClient::new(jwks_url, reqwest_client.clone()).await?;
 
-    Ok(AzureADOAuth2Client {
+    Ok(KeycloakOAuth2Client {
         reqwest_client,
         client,
         jwks_client,
         client_id: client_id.to_string(),
         use_refresh_token,
-        _tenant_id: tenant_id.to_string(), // Store tenant ID
     })
 }
 
 #[async_trait::async_trait]
-impl OAuth2Client for AzureADOAuth2Client {
+impl OAuth2Client for KeycloakOAuth2Client {
     async fn exchange_refresh_token(
         &self,
         refresh_token: String,
@@ -146,14 +141,12 @@ impl OAuth2Client for AzureADOAuth2Client {
         if !self.use_refresh_token {
             return Err(TapLockError::new("Refresh token is disabled"));
         }
-
         let token_result = self
             .client
             .exchange_refresh_token(&oauth2::RefreshToken::new(refresh_token.to_string()))
-            .add_scope(Scope::new(format!("{}/.default", self.client_id)))
             .add_scopes(
                 ["openid", "email", "profile", "offline_access"].map(|s| Scope::new(s.into())),
-            ) // Add offline_access
+            )
             .request_async(&self.reqwest_client)
             .await?;
 
@@ -199,10 +192,11 @@ impl OAuth2Client for AzureADOAuth2Client {
         let (auth_url, _csrf_token) = self
             .client
             .authorize_url(CsrfToken::new_random)
-            .add_scope(Scope::new(format!("{}/.default", self.client_id)))
+            .add_extra_param("access_type", "offline")
+            .add_extra_param("prompt", "consent")
             .add_scopes(
                 ["openid", "email", "profile", "offline_access"].map(|s| Scope::new(s.into())),
-            ) // Add offline_access
+            )
             .url();
         auth_url.to_string()
     }

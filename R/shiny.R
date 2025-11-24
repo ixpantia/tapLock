@@ -11,8 +11,14 @@ internal_add_auth_layers <- function(config, tower) {
               status = 302,
               headers = list(
                 Location = config$get_app_url(),
-                "Set-Cookie" = build_cookie("access_token", add_bearer(token$access_token)),
-                "Set-Cookie" = build_cookie("refresh_token", token$refresh_token)
+                "Set-Cookie" = build_cookie(
+                  "access_token",
+                  add_bearer(token$access_token)
+                ),
+                "Set-Cookie" = build_cookie(
+                  "refresh_token",
+                  token$refresh_token
+                )
               )
             )
           },
@@ -63,8 +69,14 @@ internal_add_auth_layers <- function(config, tower) {
               response$headers <- append(
                 response$headers,
                 list(
-                  "Set-Cookie" = build_cookie("access_token", add_bearer(token$access_token)),
-                  "Set-Cookie" = build_cookie("refresh_token", token$refresh_token)
+                  "Set-Cookie" = build_cookie(
+                    "access_token",
+                    add_bearer(token$access_token)
+                  ),
+                  "Set-Cookie" = build_cookie(
+                    "refresh_token",
+                    token$refresh_token
+                  )
                 )
               )
               return(response)
@@ -113,11 +125,12 @@ internal_add_auth_layers <- function(config, tower) {
 
       token_decode_result <- access_token(config, cookies$access_token)
 
-      if (methods::is(token_decode_result, "error")) rlang::abort(token_decode_result$value)
+      if (methods::is(token_decode_result, "error")) {
+        rlang::abort(token_decode_result$value)
+      }
 
       session$userData$token <- token_decode_result
     })
-
 }
 
 #' @title Add authentication middle ware to a 'tower' object
