@@ -10,7 +10,7 @@ name = 'tap_lock'
 
 [dependencies]
 async-trait = "0.1.87"
-extendr-api = { version = '0.8', features = ["serde", "result_condition"] }
+extendr-api = { version = '0.8.2', features = ["serde", "result_condition"] }
 jsonwebtoken = "9.3.1"
 oauth2 = { version = "5.0.0", features = ["reqwest"] }
 reqwest = { version = "0.12.14", features = ["json", "rustls-tls"], default-features = false }
@@ -27,6 +27,7 @@ platforms = [
     "aarch64-unknown-linux-gnu",
     # Windows
     "x86_64-pc-windows-gnu",
+    "aarch64-pc-windows-gnullvm",
     # MacOS
     "x86_64-apple-darwin",
     "aarch64-apple-darwin"
